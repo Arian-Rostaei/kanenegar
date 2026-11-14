@@ -1,0 +1,62 @@
+# پایپلاین انتشار روزانه: هر روز ایجنت را اجرا، داده را به‌روزرسانی و سایت را روی
+# GitHub Pages منتشر می‌کند. در تب Settings→Pages گزینهٔ Source را روی "GitHub Actions" بگذارید.
+name: daily-news
+
+on:
+  schedule:
+    - cron: "30 6 * * *"   # هر روز ۰۶:۳۰ UTC (حدود ۱۰:۰۰ تهران)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: daily-news
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: اجرای ایجنت خبری
+        env:
+          AGENT_LLM_PROVIDER: ${{ vars.AGENT_LLM_PROVIDER || 'openai' }}
+          AGENT_LLM_API_KEY: ${{ secrets.AGENT_LLM_API_KEY }}
+          AGENT_LLM_BASE_URL: ${{ vars.AGENT_LLM_BASE_URL || '' }}
+          AGENT_LLM_MODEL: ${{ vars.AGENT_LLM_MODEL || '' }}
+          AGENT_MAX_NEW: ${{ vars.AGENT_MAX_NEW || '6' }}
+        run: python3 agent/pipeline.py
+
+      - name: ذخیرهٔ دادهٔ به‌روزشده در مخزن
+        run: |
+          git config user.name  "kanenegar-agent"
+          git config user.email "agent@kanenegar.local"
+          git add data/articles.js data/articles.json data/market.js
+          if git diff --cached --quiet; then
+            echo "خبر تازه‌ای نبود؛ چیزی کامیت نشد."
+          else
+            git commit -m "news: به‌روزرسانی روزانه $(date -u +%F)"
+            git push
+          fi
+
+      - name: آماده‌سازی فایل‌های انتشار
+        run: |
+          mkdir -p _site
+          cp -r index.html app.js data _site/
+          for f in robots.txt sitemap.xml 404.html favicon.ico; do
+            [ -f "$f" ] && cp "$f" _site/ || true
+          done
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: "_site"
+      - uses: actions/deploy-pages@v4
