@@ -21,17 +21,48 @@ SYSTEM_PROMPT = (
     '  "body": ["پاراگراف فارسی", "زیرتیتر|...", "..."]\n'
     "}\n"
     'در آرایهٔ body، هر عنصر یک پاراگراف است؛ اگر عنصری با "زیرتیتر|" شروع شد، به‌عنوان سرفصل فرعی رندر می‌شود. '
-    "لحن رسمی و خبری باشد و ۳ تا  پاراگراف تولید کن."
+    "لحن رسمی و خبری باشد و ۳ تا ۶ پاراگراف تولید کن."
 )
 
 
-def _http_json(url, headers, payload, timeout=60):
+def _with_ua(headers):
     headers = dict(headers)
     headers["User-Agent"] = UA
+    return headers
+
+
+def _http_json(url, headers, payload, timeout=60):
     data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+    req = urllib.request.Request(url, data=data, headers=_with_ua(headers), method="POST")
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode("utf-8"))
+
+
+def _http_get_json(url, headers, timeout=30):
+    req = urllib.request.Request(url, headers=_with_ua(headers), method="GET")
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+def _pick_models(base, key, env_model):
+    env_model = (env_model or "").strip()
+    if env_model and env_model.lower() != "auto":
+        return [m.strip() for m in env_model.split(",") if m.strip()]
+    try:
+        data = _http_get_json(base + "/models", {"Authorization": "Bearer " + key})
+        ids = [d.get("id", "") for d in data.get("data", []) if d.get("id")]
+    except Exception as e:
+        print("  [llm] فهرست مدل‌ها دریافت نشد:", str(e)[:80])
+        return []
+    pref = ["gpt-oss-120b", "llama-3.3-70b", "qwen3-32b", "llama-3.1-8b", "llama-4"]
+    chosen = []
+    for p in pref:
+        for i in ids:
+            if p in i and i not in chosen:
+                chosen.append(i)
+    if not chosen and ids:
+        chosen = [ids[0]]
+    return chosen
 
 
 def _extract_json(text):
@@ -96,23 +127,30 @@ def translate_article(title, summary, source_name, url):
             raw = None
     else:
         base = os.environ.get("AGENT_LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/")
-        model = os.environ.get("AGENT_LLM_MODEL", "gpt-4o-mini")
-        resp = _http_json(base + "/chat/completions", {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + key,
-        }, {
-            "model": model,
-            "temperature": 0.3,
-            "max_tokens": 2048,
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user},
-            ],
-        })
-        try:
-            raw = resp["choices"][0]["message"]["content"]
-        except Exception:
-            raw = None
+        models = _pick_models(base, key, os.environ.get("AGENT_LLM_MODEL", ""))
+        if not models:
+            print("  [llm] هیچ مدل در دسترسی پیدا نشد.")
+            return None
+        for model in models:
+            try:
+                resp = _http_json(base + "/chat/completions", {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + key,
+                }, {
+                    "model": model,
+                    "temperature": 0.3,
+                    "max_tokens": 2048,
+                    "messages": [
+                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "user", "content": user},
+                    ],
+                })
+                raw = resp["choices"][0]["message"]["content"]
+                print("  [llm] مدل استفاده‌شده:", model)
+                break
+            except Exception as e:
+                print("  [llm] مدل", model, "کار نکرد:", str(e)[:80])
+                raw = None
 
     if not raw:
         print("  [llm] پاسخی از مدل دریافت نشد.")
