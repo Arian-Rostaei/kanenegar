@@ -1,17 +1,10 @@
-"""ترجمه و دسته‌بندی خبر با مدل زبانی.
-
-فقط کتابخانهٔ استاندارد استفاده می‌شود (urllib). سه ارائه‌دهنده پشتیبانی می‌شود و با
-متغیرهای محیطی انتخاب می‌شوند:
-
-  AGENT_LLM_PROVIDER  = openai | gemini | anthropic   (پیش‌فرض: openai)
-  AGENT_LLM_API_KEY   = کلید ای‌پی‌آی
-  AGENT_LLM_BASE_URL  = برای سازگارهای OpenAI (مثل Together/Groq/محلی) اختیاری
-  AGENT_LLM_MODEL     = نام مدل (در صورت خالی، پیش‌فرض ارائه‌دهنده)
-"""
+"""ترجمه و دسته‌بندی خبر با مدل زبانی (سازگار با فرمت OpenAI)."""
 import json
 import os
 import re
 import urllib.request
+
+UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 
 CATS = ["copper", "precious", "battery", "rare", "iron", "geo", "market"]
 
@@ -28,14 +21,14 @@ SYSTEM_PROMPT = (
     '  "body": ["پاراگراف فارسی", "زیرتیتر|...", "..."]\n'
     "}\n"
     'در آرایهٔ body، هر عنصر یک پاراگراف است؛ اگر عنصری با "زیرتیتر|" شروع شد، به‌عنوان سرفصل فرعی رندر می‌شود. '
-    "لحن رسمی و خبری باشد و ۳ تا ۶ پاراگراف تولید کن."
+    "لحن رسمی و خبری باشد و ۳ تا  پاراگراف تولید کن."
 )
 
 
 def _http_json(url, headers, payload, timeout=60):
     headers = dict(headers)
-        headers["User-Agent"] = "Mozilla/5.0 (Window NT 10.0; win64; x64) AppleWebKit/537.36 (KHTML, like Genko) Chrome/126.0 Safari/537.36"    
-        data = json.dumps(payload).encode("utf-8")
+    headers["User-Agent"] = UA
+    data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url, data=data, headers=headers, method="POST")
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode("utf-8"))
@@ -43,7 +36,6 @@ def _http_json(url, headers, payload, timeout=60):
 
 def _extract_json(text):
     text = text.strip()
-    # حذف بلوک کد احتمالی
     m = re.search(r"```(?:json)?\s*(.*?)```", text, re.S)
     if m:
         text = m.group(1).strip()
@@ -51,7 +43,6 @@ def _extract_json(text):
         return json.loads(text)
     except Exception:
         pass
-    # تلاش برای پیدا کردن اولین {...}
     m = re.search(r"\{.*\}", text, re.S)
     if m:
         try:
@@ -62,7 +53,6 @@ def _extract_json(text):
 
 
 def translate_article(title, summary, source_name, url):
-    """ورودی: خبر انگلیسی. خروجی: دیکشنری فارسی یا None."""
     provider = os.environ.get("AGENT_LLM_PROVIDER", "openai").lower()
     key = os.environ.get("AGENT_LLM_API_KEY", "").strip()
     if not key:
@@ -79,8 +69,8 @@ def translate_article(title, summary, source_name, url):
     raw = None
     if provider == "gemini":
         model = os.environ.get("AGENT_LLM_MODEL", "gemini-1.5-flash")
-        url_api = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
-        resp = _http_json(url_api, {"Content-Type": "application/json"}, {
+        api = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + key
+        resp = _http_json(api, {"Content-Type": "application/json"}, {
             "contents": [{"role": "user", "parts": [{"text": SYSTEM_PROMPT + "\n\n" + user}]}],
             "generationConfig": {"temperature": 0.3, "maxOutputTokens": 2048},
         })
@@ -104,7 +94,7 @@ def translate_article(title, summary, source_name, url):
             raw = resp["content"][0]["text"]
         except Exception:
             raw = None
-    else:  # openai یا هر سازگارِ آن
+    else:
         base = os.environ.get("AGENT_LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/")
         model = os.environ.get("AGENT_LLM_MODEL", "gpt-4o-mini")
         resp = _http_json(base + "/chat/completions", {
@@ -114,7 +104,6 @@ def translate_article(title, summary, source_name, url):
             "model": model,
             "temperature": 0.3,
             "max_tokens": 2048,
-            "response_format": {"type": "json_object"},
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user},
