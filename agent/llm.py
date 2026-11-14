@@ -33,7 +33,9 @@ SYSTEM_PROMPT = (
 
 
 def _http_json(url, headers, payload, timeout=60):
-    data = json.dumps(payload).encode("utf-8")
+    headers = dict(headers)
+        headers["User-Agent"] = "Mozilla/5.0 (Window NT 10.0; win64; x64) AppleWebKit/537.36 (KHTML, like Genko) Chrome/126.0 Safari/537.36"    
+        data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url, data=data, headers=headers, method="POST")
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode("utf-8"))
