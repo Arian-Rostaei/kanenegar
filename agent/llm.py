@@ -1,4 +1,7 @@
-"""ترجمه و دسته‌بندی خبر با مدل زبانی (سازگار با فرمت OpenAI)."""
+"""ترجمه و دسته‌بندی خبر با مدل زبانی (سازگار با فرمت OpenAI).
+این نسخه مستقل از نام مدل است: خودش فهرست زندهٔ مدل‌ها را از سرویس
+می‌گیرد و یکی‌یکی امتحان می‌کند تا به اولین مدل سالم برسد.
+"""
 import json
 import os
 import re
@@ -24,6 +27,9 @@ SYSTEM_PROMPT = (
     "لحن رسمی و خبری باشد و ۳ تا ۶ پاراگراف تولید کن."
 )
 
+PREFER = ["gpt-oss-120b", "llama-3.3-70b", "llama-4-maverick", "llama-4-scout",
+          "qwen3-32b", "kimi-k2", "llama-3.1-8b"]
+
 
 def _with_ua(headers):
     headers = dict(headers)
@@ -31,7 +37,7 @@ def _with_ua(headers):
     return headers
 
 
-def _http_json(url, headers, payload, timeout=60):
+def _http_json(url, headers, payload, timeout=90):
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url, data=data, headers=_with_ua(headers), method="POST")
     with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -44,24 +50,30 @@ def _http_get_json(url, headers, timeout=30):
         return json.loads(r.read().decode("utf-8"))
 
 
-def _pick_models(base, key, env_model):
-    env_model = (env_model or "").strip()
-    if env_model and env_model.lower() != "auto":
-        return [m.strip() for m in env_model.split(",") if m.strip()]
+def _live_models(base, key):
     try:
         data = _http_get_json(base + "/models", {"Authorization": "Bearer " + key})
-        ids = [d.get("id", "") for d in data.get("data", []) if d.get("id")]
+        ids = sorted({d.get("id", "") for d in data.get("data", []) if d.get("id")})
+        if ids:
+            print("  [llm] مدل‌های زندهٔ سرویس:", ", ".join(ids))
+            return ids
     except Exception as e:
-        print("  [llm] فهرست مدل‌ها دریافت نشد:", str(e)[:80])
-        return []
-    pref = ["gpt-oss-120b", "llama-3.3-70b", "qwen3-32b", "llama-3.1-8b", "llama-4"]
+        print("  [llm] گرفتن فهرست مدل‌ها نشد:", str(e)[:100])
+    return ["openai/gpt-oss-120b", "openai/gpt-oss-20b",
+            "meta-llama/llama-4-maverick-17b-128e-instruct",
+            "meta-llama/llama-4-scout-17b-16e-instruct",
+            "llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+
+
+def _ordered_candidates(live):
     chosen = []
-    for p in pref:
-        for i in ids:
-            if p in i and i not in chosen:
-                chosen.append(i)
-    if not chosen and ids:
-        chosen = [ids[0]]
+    for kw in PREFER:
+        for m in live:
+            if kw in m and m not in chosen:
+                chosen.append(m)
+    for m in live:
+        if m not in chosen:
+            chosen.append(m)
     return chosen
 
 
@@ -87,7 +99,7 @@ def translate_article(title, summary, source_name, url):
     provider = os.environ.get("AGENT_LLM_PROVIDER", "openai").lower()
     key = os.environ.get("AGENT_LLM_API_KEY", "").strip()
     if not key:
-        print("  [llm] کلید ای‌پی‌آی تنظیم نشده؛ از ترجمهٔ این خبر صرف‌نظر می‌شود.")
+        print("  [llm] کلید ای‌پی‌آی تنظیم نشده.")
         return None
 
     user = (
@@ -98,40 +110,43 @@ def translate_article(title, summary, source_name, url):
     )
 
     raw = None
+
     if provider == "gemini":
         model = os.environ.get("AGENT_LLM_MODEL", "gemini-1.5-flash")
-        api = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + key
-        resp = _http_json(api, {"Content-Type": "application/json"}, {
-            "contents": [{"role": "user", "parts": [{"text": SYSTEM_PROMPT + "\n\n" + user}]}],
-            "generationConfig": {"temperature": 0.3, "maxOutputTokens": 2048},
-        })
+        api = ("https://generativelanguage.googleapis.com/v1beta/models/"
+               + model + ":generateContent?key=" + key)
         try:
+            resp = _http_json(api, {"Content-Type": "application/json"}, {
+                "contents": [{"role": "user",
+                              "parts": [{"text": SYSTEM_PROMPT + "\n\n" + user}]}],
+                "generationConfig": {"temperature": 0.3, "maxOutputTokens": 2048},
+            })
             raw = resp["candidates"][0]["content"]["parts"][0]["text"]
-        except Exception:
-            raw = None
+        except Exception as e:
+            print("  [llm] جمینای خطا:", str(e)[:100])
+
     elif provider == "anthropic":
         model = os.environ.get("AGENT_LLM_MODEL", "claude-3-5-sonnet-latest")
-        resp = _http_json("https://api.anthropic.com/v1/messages", {
-            "Content-Type": "application/json",
-            "x-api-key": key,
-            "anthropic-version": "2023-06-01",
-        }, {
-            "model": model,
-            "max_tokens": 2048,
-            "system": SYSTEM_PROMPT,
-            "messages": [{"role": "user", "content": user}],
-        })
         try:
+            resp = _http_json("https://api.anthropic.com/v1/messages", {
+                "Content-Type": "application/json",
+                "x-api-key": key,
+                "anthropic-version": "2023-06-01",
+            }, {
+                "model": model, "max_tokens": 2048,
+                "system": SYSTEM_PROMPT,
+                "messages": [{"role": "user", "content": user}],
+            })
             raw = resp["content"][0]["text"]
-        except Exception:
-            raw = None
+        except Exception as e:
+            print("  [llm] آنتروپیک خطا:", str(e)[:100])
+
     else:
-        base = os.environ.get("AGENT_LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/")
-        models = _pick_models(base, key, os.environ.get("AGENT_LLM_MODEL", ""))
-        if not models:
-            print("  [llm] هیچ مدل در دسترسی پیدا نشد.")
-            return None
-        for model in models:
+        base = os.environ.get("AGENT_LLM_BASE_URL",
+                              "https://api.openai.com/v1").rstrip("/")
+        live = _live_models(base, key)
+        candidates = _ordered_candidates(live)
+        for model in candidates:
             try:
                 resp = _http_json(base + "/chat/completions", {
                     "Content-Type": "application/json",
@@ -146,18 +161,17 @@ def translate_article(title, summary, source_name, url):
                     ],
                 })
                 raw = resp["choices"][0]["message"]["content"]
-                print("  [llm] مدل استفاده‌شده:", model)
+                print("  [llm] ✅ مدل سالم:", model)
                 break
             except Exception as e:
-                print("  [llm] مدل", model, "کار نکرد:", str(e)[:80])
-                raw = None
+                print("  [llm] مدل", model, "رد شد:", str(e)[:90])
 
     if not raw:
-        print("  [llm] پاسخی از مدل دریافت نشد.")
+        print("  [llm] هیچ مدلی جواب نداد.")
         return None
     obj = _extract_json(raw)
     if not obj or "title" not in obj:
-        print("  [llm] خروجی مدل قابل تجزیه نبود.")
+        print("  [llm] خروجی قابل تجزیه نبود.")
         return None
     if obj.get("category") not in CATS:
         obj["category"] = "market"
