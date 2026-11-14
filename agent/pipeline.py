@@ -35,7 +35,7 @@ MARKET_JS = DATA_DIR / "market.js"
 
 MAX_NEW_PER_RUN = int(os.environ.get("AGENT_MAX_NEW", "6"))
 MAX_TOTAL = int(os.environ.get("AGENT_MAX_TOTAL", "80"))
-AGENT_NAME = "کان‌نگار/۱.۰ (+https://github.com/youruser/kanenegar)"
+AGENT_NAME = "KaneNegarBot/1.0 (news-agent)"
 
 
 def log(*a):
