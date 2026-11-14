@@ -1,2 +1,2 @@
-window.MARKET_DATA = [];
-window.COPPER_POINTS = [];
+window.MARKET_DATA = [{"fa": "مس", "en": "Copper · LME 3M", "sym": "Cu", "price": 13712, "unit": "دلار / تن", "chg": -1.18, "date": "2026-11-14", "src": "LME", "c": "#E08D4F", "note": "سقف 2026: 14٬875 دلار — 10 سپتامبر"}];
+window.COPPER_POINTS = [{"d": "2026-01-29", "v": 14527.5, "label": "رکورد ژانویه", "src": "Benchmark"}, {"d": "2026-09-10", "v": 14875, "label": "سقف 2026", "src": "Fastmarkets"}, {"d": "2026-11-12", "v": 13712, "label": "آخرین ثبت", "src": "Westmetall"}];
