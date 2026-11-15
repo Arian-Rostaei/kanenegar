@@ -197,7 +197,6 @@ section{scroll-margin-top:calc(var(--head) + 14px)}
 .chart-src{color:var(--faint);font-size:.68rem;margin-top:10px}
 .market-note{display:flex;gap:10px;align-items:flex-start;background:rgba(87,166,255,.07);border:1px solid rgba(87,166,255,.22);border-radius:var(--rad-s);padding:13px 16px;margin-top:16px;font-size:.76rem;color:#B9CBE8}
 .market-note svg{width:17px;height:17px;flex-shrink:0;margin-top:3px;color:var(--info)}
-/* مودال نمودار فلز */
 .mmodal{position:fixed;inset:0;z-index:260;display:none}
 .mmodal.open{display:block}
 .mmodal-back{position:absolute;inset:0;background:rgba(5,6,9,.75);backdrop-filter:blur(8px)}
@@ -225,10 +224,11 @@ section{scroll-margin-top:calc(var(--head) + 14px)}
 .pipe-step p{color:var(--muted);font-size:.8rem;line-height:1.9}
 .sources-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--rad);padding:26px;display:flex;flex-direction:column}
 .src-list{display:flex;flex-direction:column;gap:8px;margin-top:14px;flex:1}
-.src-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;background:var(--bg2);border:1px solid var(--line);transition:.25s;font-size:.82rem}
+.src-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:var(--bg2);border:1px solid var(--line);transition:.25s;font-size:.78rem}
 .src-item:hover{border-color:var(--copper);transform:translateX(-3px)}
-.src-item .n{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:.68rem;font-weight:800;background:rgba(224,141,79,.15);color:var(--copper);flex-shrink:0}
-.src-item .cnt{margin-inline-start:auto;font-size:.68rem;color:var(--faint)}
+.src-item .n{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;font-size:.58rem;font-weight:800;background:rgba(224,141,79,.15);color:var(--copper);flex-shrink:0}
+.src-item .cnt{margin-inline-start:auto;font-size:.64rem;color:var(--faint)}
+.src-item svg{width:11px;height:11px;color:var(--faint)}
 .honesty{margin-top:16px;font-size:.72rem;color:var(--faint);line-height:1.9;background:rgba(242,179,61,.06);border:1px solid rgba(242,179,61,.2);border-radius:12px;padding:12px 14px}
 .newsletter{padding:46px 0 60px}
 .nl-card{position:relative;border-radius:26px;overflow:hidden;border:1px solid var(--line2);background:linear-gradient(130deg,rgba(201,111,59,.18),rgba(18,22,31,.9) 45%,rgba(87,166,255,.12));padding:44px 36px;text-align:center}
@@ -308,6 +308,7 @@ footer{border-top:1px solid var(--line);background:rgba(10,12,16,.7);padding:40p
 @keyframes toastOut{to{opacity:0;transform:translateY(10px)}}
 .fab{position:fixed;bottom:22px;inset-inline-end:22px;z-index:90;width:48px;height:48px;border-radius:15px;background:linear-gradient(140deg,var(--amber),var(--copper2));color:#221204;display:grid;place-items:center;box-shadow:0 12px 30px -10px rgba(224,141,79,.8);opacity:0;pointer-events:none;transform:translateY(14px);transition:.35s var(--ease)}
 .fab.show{opacity:1;pointer-events:auto;transform:none}
+.fab:hover{transform:translateY(-3px)}
 .fab svg{width:20px;height:20px}
 .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
 .reveal.in{opacity:1;transform:none}
@@ -315,8 +316,6 @@ footer{border-top:1px solid var(--line);background:rgba(10,12,16,.7);padding:40p
 @media(max-width:900px){.main-nav{display:none}.menu-toggle{display:grid}.head-actions .btn-primary{display:none}.hero-stats{grid-template-columns:repeat(2,1fr)}.foot-grid{grid-template-columns:1fr 1fr}.reader-body{padding:8px 22px 40px}.rel-grid{grid-template-columns:1fr 1fr}.mmodal-stats{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:640px){:root{--head:100px}.wrap{padding:0 16px}.grid{grid-template-columns:1fr}.grid.list .card{flex-direction:column}.grid.list .card-art{width:100%;aspect-ratio:16/9}.market-grid{grid-template-columns:repeat(2,1fr)}.hero-side{flex-direction:column}.hero-content{padding:22px}.hero-feature{min-height:380px}.ticker-label .txt{display:none}.foot-grid{grid-template-columns:1fr}.reader-hero{height:200px}.reader-nav{flex-direction:column}.nl-card{padding:32px 20px}.head-row{padding:10px 16px}.brand-sub{display:none}.facts{grid-template-columns:1fr 1fr}.mmodal-panel{width:100vw;height:100vh;border-radius:0}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001s!important;transition-duration:.001s!important;scroll-behavior:auto!important}.ticker-track{animation:none}.card,.reveal{opacity:1;transform:none}}
-.brand-mark{width:30px;height:30px}
-.brand-name{font-size:1.05rem}  
 </style>
 </head>
 <body>
@@ -381,7 +380,7 @@ footer{border-top:1px solid var(--line);background:rgba(10,12,16,.7);padding:40p
         <div>
           <span class="eyebrow">◆ آرشیو ترجمه‌شده</span>
           <h2 class="sec-title"><span class="bar"></span>تازه‌ترین مقالات معدن و فلزات</h2>
-          <p class="sec-sub">گزیده‌ای از اخبار معتبر جهان — ترجمهٔ فارسی، همراه با لینک مستقیم به منبع اصلی</p>
+          <p class="sec-sub">گزیده‌ای از اخبار معتبر جهان و آسیا — ترجمهٔ فارسی، همراه با لینک مستقیم به منبع اصلی</p>
         </div>
         <button class="btn btn-ghost" id="exportBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v3h16v-3"/></svg>خروجی آرشیو (JSON)</button>
       </div>
@@ -584,6 +583,6 @@ const ARTICLES = Array.isArray(window.ARTICLES_DATA) ? window.ARTICLES_DATA : []
 </script>
 <script src="data/market.js"></script>
 <script src="app.js"></script>
-<script src="data/pagination.js"></script>  
+<script src="data/pagination.js"></script>
 </body>
 </html>
