@@ -1,6 +1,6 @@
 """ترجمه و دسته‌بندی خبر با مدل زبانی (سازگار با فرمت OpenAI).
-این نسخه مستقل از نام مدل است: خودش فهرست زندهٔ مدل‌ها را از سرویس
-می‌گیرد و یکی‌یکی امتحان می‌کند تا به اولین مدل سالم برسد.
+نسخهٔ مستقل از نام مدل: خودش فهرست زندهٔ مدل‌ها را می‌گیرد و اولین مدل سالم را پیدا می‌کند.
+مقاله‌ها را بلند و تحلیلی تولید می‌کند.
 """
 import json
 import os
@@ -24,7 +24,9 @@ SYSTEM_PROMPT = (
     '  "body": ["پاراگراف فارسی", "زیرتیتر|...", "..."]\n'
     "}\n"
     'در آرایهٔ body، هر عنصر یک پاراگراف است؛ اگر عنصری با "زیرتیتر|" شروع شد، به‌عنوان سرفصل فرعی رندر می‌شود. '
-    "لحن رسمی و خبری باشد و ۳ تا ۶ پاراگراف تولید کن."
+    "لحن رسمی و خبری باشد. مقاله باید کامل و تحلیلی باشد: ۶ تا ۱۰ پاراگراف بنویس شامل زمینه و سابقهٔ موضوع، "
+    "جزئیات عددی و مالی، نقل‌قول‌ها، پیامدها برای بازار و زنجیرهٔ تأمین، و در پایان یک پاراگراف با عنوان "
+    '"زیرتیتر|چشم‌انداز و تحلیل" که جمع‌بندی تحلیلی باشد. حداقل ۴ مورد در facts بگذار.'
 )
 
 PREFER = ["gpt-oss-120b", "llama-3.3-70b", "llama-4-maverick", "llama-4-scout",
@@ -119,7 +121,7 @@ def translate_article(title, summary, source_name, url):
             resp = _http_json(api, {"Content-Type": "application/json"}, {
                 "contents": [{"role": "user",
                               "parts": [{"text": SYSTEM_PROMPT + "\n\n" + user}]}],
-                "generationConfig": {"temperature": 0.3, "maxOutputTokens": 2048},
+                "generationConfig": {"temperature": 0.3, "maxOutputTokens": 4000},
             })
             raw = resp["candidates"][0]["content"]["parts"][0]["text"]
         except Exception as e:
@@ -133,7 +135,7 @@ def translate_article(title, summary, source_name, url):
                 "x-api-key": key,
                 "anthropic-version": "2023-06-01",
             }, {
-                "model": model, "max_tokens": 2048,
+                "model": model, "max_tokens": 4000,
                 "system": SYSTEM_PROMPT,
                 "messages": [{"role": "user", "content": user}],
             })
@@ -154,7 +156,7 @@ def translate_article(title, summary, source_name, url):
                 }, {
                     "model": model,
                     "temperature": 0.3,
-                    "max_tokens": 2048,
+                    "max_tokens": 4000,
                     "messages": [
                         {"role": "system", "content": SYSTEM_PROMPT},
                         {"role": "user", "content": user},
