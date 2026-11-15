@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ایجنت روزانهٔ کانه‌نگار: دریافت خبر از چند منبع، ترجمهٔ فارسی، انتشار با تنوع منبع."""
+"""ایجنت روزانه: خبر چندمنبعی (جهانی+آسیایی)، ترجمهٔ تحلیلی، ذخیرهٔ تاریخچهٔ قیمت."""
 import datetime as dt
 import hashlib
 import html
@@ -7,6 +7,7 @@ import json
 import os
 import re
 import sys
+import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -19,11 +20,15 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
 ARTICLES_JSON = DATA_DIR / "articles.json"
 ARTICLES_JS = DATA_DIR / "articles.js"
+HISTORY_JS = DATA_DIR / "market-history.js"
 
 MAX_NEW_PER_RUN = int(os.environ.get("AGENT_MAX_NEW", "6"))
-MAX_PER_SOURCE = 2          # حداکثر ۲ خبر از هر منبع → تنوع رسانه‌ای
+MAX_PER_SOURCE = 2
 MAX_TOTAL = int(os.environ.get("AGENT_MAX_TOTAL", "80"))
 AGENT_NAME = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+
+YAHOO = {"Au": "GC=F", "Ag": "SI=F", "Cu": "HG=F", "Pt": "PL=F",
+         "Pd": "PA=F", "Ni": "NI=F", "Fe": "TIO=F"}
 
 
 def log(*a):
@@ -35,7 +40,7 @@ def load_existing():
         try:
             return json.loads(ARTICLES_JSON.read_text(encoding="utf-8"))
         except Exception as e:
-            log("هشدار: مقالات موجود قابل خواندن نبود:", e)
+            log("هشدار خواندن موجود:", e)
     return []
 
 
@@ -49,12 +54,8 @@ def fetch_feed(feed):
     except Exception as e:
         log(f"فید {feed['name']} در دسترس نبود:", str(e)[:100])
         return items
-
     ns = {"atom": "http://www.w3.org/2005/Atom"}
-    entries = root.findall(".//item")
-    if not entries:
-        entries = root.findall(".//atom:entry", ns)
-
+    entries = root.findall(".//item") or root.findall(".//atom:entry", ns)
     for it in entries[:30]:
         def text_of(tags):
             for t in tags:
@@ -64,7 +65,6 @@ def fetch_feed(feed):
                 if node is not None and (node.text or "").strip():
                     return node.text.strip()
             return ""
-
         title = html.unescape(text_of(["title"]))
         link = text_of(["link"])
         if not link:
@@ -74,16 +74,11 @@ def fetch_feed(feed):
         desc = html.unescape(re.sub(r"<[^>]+>", " ", text_of(["description", "summary", "content"]) or ""))
         if not (title and link):
             continue
-
-        source = feed["name"]
-        headline = title
-        # در حالت gnews، نام رسانهٔ واقعی انتهای تیتر می‌آید:  "Headline - Reuters"
+        source, headline = feed["name"], title
         if feed["type"] == "gnews" and " - " in title:
             headline, _, tail = title.rpartition(" - ")
             if 2 <= len(tail) <= 40:
-                source = tail.strip()
-                title = headline.strip()
-
+                source, title = tail.strip(), headline.strip()
         items.append({"title": title, "link": link.strip(),
                       "summary": desc.strip()[:900], "source": source})
     return items
@@ -137,14 +132,43 @@ def build_article(item, fa):
     }
 
 
-def write_outputs(articles):
+def fetch_history():
+    hist = {}
+    for sym, tick in YAHOO.items():
+        try:
+            url = ("https://query1.finance.yahoo.com/v8/finance/chart/" +
+                   urllib.parse.quote(tick) + "?range=1y&interval=1d")
+            req = urllib.request.Request(url, headers={"User-Agent": AGENT_NAME})
+            data = json.loads(urllib.request.urlopen(req, timeout=25).read().decode())
+            res = data["chart"]["result"][0]
+            ts = res.get("timestamp") or []
+            closes = (res.get("indicators", {}).get("quote", [{}]) or [{}])[0].get("close") or []
+            t, p = [], []
+            for i, c in enumerate(closes):
+                if c is None or i >= len(ts):
+                    continue
+                t.append(dt.datetime.utcfromtimestamp(ts[i]).strftime("%Y-%m-%d"))
+                p.append(round(float(c), 2))
+            if t:
+                hist[sym] = {"t": t, "p": p}
+                log(f"تاریخچه {sym}: {len(t)} روز")
+        except Exception as e:
+            log(f"تاریخچه {sym} دریافت نشد:", str(e)[:80])
+    return hist
+
+
+def write_outputs(articles, hist):
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     ARTICLES_JSON.write_text(json.dumps(articles, ensure_ascii=False, indent=1), encoding="utf-8")
     ARTICLES_JS.write_text(
-        "/* این فایل پایگاه دادهٔ مقالات است. ایجنت روزانه آن را بازنویسی می‌کند؛ دستی ویرایش نکنید. */\n"
+        "/* پایگاه دادهٔ مقالات — ایجنت روزانه بازنویسی می‌کند. */\n"
         "window.ARTICLES_DATA = " + json.dumps(articles, ensure_ascii=False) + ";\n",
         encoding="utf-8")
-    log(f"نوشتن {len(articles)} مقاله → articles.js و articles.json")
+    HISTORY_JS.write_text(
+        "/* تاریخچهٔ روزانه قیمت — ایجنت روزانه بازنویسی می‌کند. */\n"
+        "window.MARKET_HISTORY = " + json.dumps(hist, ensure_ascii=False) + ";\n",
+        encoding="utf-8")
+    log(f"نوشتن {len(articles)} مقاله + تاریخچهٔ {len(hist)} فلز")
 
 
 def main():
@@ -163,7 +187,6 @@ def main():
                 candidates.append(it)
     log(f"پس از فیلتر و حذف تکراری: {len(candidates)} نامزد تازه")
 
-    # انتخاب با سقف هر منبع تا تنوع رسانه‌ای حفظ شود
     picked, per_source = [], {}
     for it in candidates:
         if len(picked) >= MAX_NEW_PER_RUN:
@@ -184,16 +207,18 @@ def main():
         if fa:
             new_articles.append(build_article(it, fa))
 
+    hist = fetch_history()
+
     if not new_articles:
-        log("خبر تازه‌ای برای انتشار نبود؛ پایگاه داده تغییر نمی‌کند.")
-        write_outputs(existing)
+        log("خبر تازه‌ای برای انتشار نبود؛ فقط تاریخچه به‌روز شد.")
+        write_outputs(existing, hist)
         return
 
     merged = new_articles + existing
     merged.sort(key=lambda a: a.get("date", ""), reverse=True)
     merged = merged[:MAX_TOTAL]
-    write_outputs(merged)
-    log(f"✅ {len(new_articles)} خبر جدید از منابع: " + ", ".join(sorted({a['source'] for a in new_articles})))
+    write_outputs(merged, hist)
+    log("✅ " + str(len(new_articles)) + " خبر جدید از منابع: " + ", ".join(sorted({a['source'] for a in new_articles})))
 
 
 if __name__ == "__main__":
