@@ -1,0 +1,53 @@
+name: price-refresh
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: price-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: گرفتن قیمت‌های زنده
+        run: python3 agent/prices.py
+
+      - name: کامیت قیمت‌ها
+        run: |
+          git config user.name  "kanenegar-agent"
+          git config user.email "agent@kanenegar.local"
+          git add data/prices-live.js
+          if git diff --cached --quiet; then
+            echo "قیمت تغییری نکرده بود."
+          else
+            git commit -m "prices: hourly refresh"
+            git push
+          fi
+
+      - name: آماده‌سازی و انتشار سایت
+        run: |
+          mkdir -p _site
+          cp -r index.html app.js data _site/
+          for f in robots.txt sitemap.xml 404.html favicon.ico CNAME; do
+            [ -f "$f" ] && cp "$f" _site/ || true
+          done
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: "_site"
+      - uses: actions/deploy-pages@v4
