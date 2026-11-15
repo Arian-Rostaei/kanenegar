@@ -19,26 +19,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: گرفتن قیمت‌های زنده
+      - name: گرفتن قیمت‌های زنده و تاریخچه
         run: python3 agent/prices.py
 
-      - name: کامیت قیمت‌ها
+      - name: کامیت قیمت‌ها و تاریخچه
         run: |
           git config user.name  "kanenegar-agent"
           git config user.email "agent@kanenegar.local"
-          git add data/prices-live.js
+          git add data/prices-live.js data/market-history.js
           if git diff --cached --quiet; then
             echo "قیمت تغییری نکرده بود."
           else
             git commit -m "prices: hourly refresh"
-            git push
+            for i in 1 2 3; do
+              if git push; then break; fi
+              echo "push رد شد؛ همگام‌سازی و تلاش دوباره ($i)…"
+              git pull --rebase origin main || git rebase --abort || true
+              sleep 5
+            done
           fi
 
-      - name: آماده‌سازی و انتشار سایت
+      - name: آماده‌سازی فایل‌های انتشار
         run: |
           mkdir -p _site
           cp -r index.html app.js data _site/
@@ -47,7 +53,9 @@ jobs:
           done
 
       - uses: actions/configure-pages@v5
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: "_site"
+
       - uses: actions/deploy-pages@v4
