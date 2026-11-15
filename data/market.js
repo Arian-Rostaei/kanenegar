@@ -1,10 +1,10 @@
-/* نبض بازار — به ترتیب محبوبیت: طلا، نقره، سپس بقیه. فقط فلزهایی که قیمت دارند. */
+/* نبض بازار — ترتیب: طلا، نقره، سپس بقیه به ترتیب محبوبیت. فقط فلزهای دارای قیمت. */
 window.MARKET_DATA = [
- {fa:"طلا",en:"Gold",sym:"Au",price:3882,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"gold-api",c:"#F5C84C",note:"🟢 زنده (به‌روزرسانی خودکار)"},
- {fa:"نقره",en:"Silver",sym:"Ag",price:50.07,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"gold-api",c:"#C9D3E0",note:"🟢 زنده (به‌روزرسانی خودکار)"},
- {fa:"مس",en:"Copper",sym:"Cu",price:13712,unit:"دلار / تن",chg:-1.18,date:"2026-11-12",src:"LME / Westmetall",c:"#E08D4F",note:"🟡 مرجع روزانه — سقف 2026: 14٬875"},
- {fa:"پلاتین",en:"Platinum",sym:"Pt",price:1520,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"gold-api",c:"#2DD4BF",note:"🟢 زنده (به‌روزرسانی خودکار)"},
- {fa:"پالادیم",en:"Palladium",sym:"Pd",price:991,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"gold-api",c:"#A78BFA",note:"🟢 زنده (به‌روزرسانی خودکار)"},
+ {fa:"طلا",en:"Gold",sym:"Au",price:3882,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"gold-api",c:"#F5C84C",note:"🟢 زنده"},
+ {fa:"نقره",en:"Silver",sym:"Ag",price:50.07,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"gold-api",c:"#C9D3E0",note:"🟢 زنده"},
+ {fa:"مس",en:"Copper",sym:"Cu",price:13712,unit:"دلار / تن",chg:-1.18,date:"2026-11-12",src:"LME / Westmetall",c:"#E08D4F",note:"🟡 مرجع روزانه"},
+ {fa:"پلاتین",en:"Platinum",sym:"Pt",price:1520,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"gold-api",c:"#2DD4BF",note:"🟢 زنده"},
+ {fa:"پالادیم",en:"Palladium",sym:"Pd",price:991,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"gold-api",c:"#A78BFA",note:"🟢 زنده"},
  {fa:"آلومینیوم",en:"Aluminum",sym:"Al",price:3135,unit:"دلار / تن",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#57A6FF",note:"🟡 مرجع"},
  {fa:"نیکل",en:"Nickel",sym:"Ni",price:15000,unit:"دلار / تن",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#3ECF8E",note:"🟡 مرجع"},
  {fa:"لیتیوم",en:"Lithium Carbonate",sym:"Li",price:13.9,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-04",src:"بازار چین",c:"#3ECF8E",note:"🟡 مرجع"},
@@ -13,20 +13,20 @@ window.MARKET_DATA = [
  {fa:"قلع",en:"Tin",sym:"Sn",price:30000,unit:"دلار / تن",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#57A6FF",note:"🟡 مرجع"},
  {fa:"کبالت",en:"Cobalt",sym:"Co",price:33,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#3ECF8E",note:"🟡 مرجع"},
  {fa:"اورانیوم",en:"Uranium",sym:"U",price:85,unit:"دلار / پوند",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#3ECF8E",note:"🟡 مرجع"},
- {fa:"منگنز",en:"Manganese",sym:"Mn",price:2.2,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع (تخمینی)",c:"#2DD4BF",note:"🟡 تخمینی"},
- {fa:"نئودیمیم-پرازئودیمیم",en:"NdPr",sym:"Nd",price:110,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-11",src:"کف قرارداد USA Rare Earth",c:"#A78BFA",note:"🟡 قراردادی"},
- {fa:"دیسپروسیم",en:"Dysprosium",sym:"Dy",price:575,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-11",src:"کف قرارداد USA Rare Earth",c:"#A78BFA",note:"🟡 قراردادی"},
- {fa:"تربیوم",en:"Terbium",sym:"Tb",price:2050,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-11",src:"کف قرارداد USA Rare Earth",c:"#A78BFA",note:"🟡 قراردادی"},
- {fa:"تنگستن",en:"Tungsten",sym:"W",price:45,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع (تخمینی)",c:"#2DD4BF",note:"🟡 تخمینی"},
- {fa:"مولیبدن",en:"Molybdenum",sym:"Mo",price:50,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع (تخمینی)",c:"#2DD4BF",note:"🟡 تخمینی"},
- {fa:"تیتانیوم",en:"Titanium",sym:"Ti",price:8,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع (تخمینی)",c:"#57A6FF",note:"🟡 تخمینی"},
- {fa:"منیزیم",en:"Magnesium",sym:"Mg",price:2.4,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع (تخمینی)",c:"#57A6FF",note:"🟡 تخمینی"},
- {fa:"ایندیم",en:"Indium",sym:"In",price:250,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع (تخمینی)",c:"#2DD4BF",note:"🟡 تخمینی"},
- {fa:"گالیم",en:"Gallium",sym:"Ga",price:300,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع (تخمینی)",c:"#2DD4BF",note:"🟡 تخمینی"},
- {fa:"ژرمانیم",en:"Germanium",sym:"Ge",price:1500,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع (تخمینی)",c:"#2DD4BF",note:"🟡 تخمینی"},
- {fa:"آنتیموان",en:"Antimony",sym:"Sb",price:15,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع (تخمینی)",c:"#2DD4BF",note:"🟡 تخمینی"},
- {fa:"رودیم",en:"Rhodium",sym:"Rh",price:150000,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع (تخمینی)",c:"#F5C84C",note:"🟡 تخمینی"},
- {fa:"ایریدیم",en:"Iridium",sym:"Ir",price:160000,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع (تخمینی)",c:"#F5C84C",note:"🟡 تخمینی"}
+ {fa:"منگنز",en:"Manganese",sym:"Mn",price:2.2,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#2DD4BF",note:"🟡 تخمینی"},
+ {fa:"نئودیمیم-پرازئودیمیم",en:"NdPr",sym:"Nd",price:110,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-11",src:"کف قرارداد USAR",c:"#A78BFA",note:"🟡 قراردادی"},
+ {fa:"دیسپروسیم",en:"Dysprosium",sym:"Dy",price:575,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-11",src:"کف قرارداد USAR",c:"#A78BFA",note:"🟡 قراردادی"},
+ {fa:"تربیوم",en:"Terbium",sym:"Tb",price:2050,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-11",src:"کف قرارداد USAR",c:"#A78BFA",note:"🟡 قراردادی"},
+ {fa:"تنگستن",en:"Tungsten",sym:"W",price:45,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#2DD4BF",note:"🟡 تخمینی"},
+ {fa:"مولیبدن",en:"Molybdenum",sym:"Mo",price:50,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#2DD4BF",note:"🟡 تخمینی"},
+ {fa:"تیتانیوم",en:"Titanium",sym:"Ti",price:8,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#57A6FF",note:"🟡 تخمینی"},
+ {fa:"منیزیم",en:"Magnesium",sym:"Mg",price:2.4,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#57A6FF",note:"🟡 تخمینی"},
+ {fa:"ایندیم",en:"Indium",sym:"In",price:250,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#2DD4BF",note:"🟡 تخمینی"},
+ {fa:"گالیم",en:"Gallium",sym:"Ga",price:300,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#2DD4BF",note:"🟡 تخمینی"},
+ {fa:"ژرمانیم",en:"Germanium",sym:"Ge",price:1500,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#2DD4BF",note:"🟡 تخمینی"},
+ {fa:"آنتیموان",en:"Antimony",sym:"Sb",price:15,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#2DD4BF",note:"🟡 تخمینی"},
+ {fa:"رودیم",en:"Rhodium",sym:"Rh",price:150000,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#F5C84C",note:"🟡 تخمینی"},
+ {fa:"ایریدیم",en:"Iridium",sym:"Ir",price:160000,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#F5C84C",note:"🟡 تخمینی"}
 ];
 window.COPPER_POINTS = [
  {d:"2026-01-29",v:14527.5,label:"رکورد ژانویه",src:"Benchmark"},
@@ -34,8 +34,15 @@ window.COPPER_POINTS = [
  {d:"2026-09-10",v:14875,label:"سقف 2026",src:"Fastmarkets"},
  {d:"2026-11-12",v:13712,label:"آخرین ثبت",src:"Westmetall"}
 ];
-/* به‌روزرسانی زندهٔ طلا، نقره، پلاتین و پالادیم در مرورگر */
+
+/* ===== رفتار بازار: به‌روزرسانی زنده + مودال نمودار تاریخی ===== */
 window.addEventListener("load", function () {
+  /* بارگذاری تاریخچهٔ ذخیره‌شده توسط ایجنت */
+  var hs = document.createElement("script");
+  hs.src = "data/market-history.js";
+  hs.onerror = function(){ window.MARKET_HISTORY = window.MARKET_HISTORY || {}; };
+  document.head.appendChild(hs);
+
   var LIVE = {Au:"XAU", Ag:"XAG", Pt:"XPT", Pd:"XPD"};
   function findCard(sym){
     var all = Array.prototype.slice.call(document.querySelectorAll(".metal"));
@@ -54,10 +61,100 @@ window.addEventListener("load", function () {
         var p = c.querySelector(".metal-price");
         if(p) p.textContent = j.price.toLocaleString("fa-IR",{maximumFractionDigits:2});
         var u = c.querySelector(".metal-unit");
-        if(u){ var base = u.textContent.split("·")[0]; u.textContent = base + "· لحظه‌ای"; }
+        if(u){ u.textContent = u.textContent.split("·")[0] + "· لحظه‌ای"; }
         var ch = c.querySelector(".chg");
         if(ch){ ch.className="chg up"; ch.textContent="● زنده"; }
-      })
-      .catch(function(){});
+      }).catch(function(){});
+  });
+
+  /* ===== مودال نمودار ===== */
+  var modal = document.getElementById("mmodal");
+  var body = document.getElementById("mmBody");
+  var titleEl = document.getElementById("mmTitle");
+  var current = null, currentRange = 30;
+
+  function fa(n){ return Number(n).toLocaleString("fa-IR",{maximumFractionDigits:2}); }
+
+  function sliceByRange(hist, days){
+    var t = hist.t, p = hist.p;
+    var n = Math.min(days, t.length);
+    return { t: t.slice(t.length-n), p: p.slice(p.length-n) };
+  }
+
+  function drawChart(hist, sym, unit){
+    var s = sliceByRange(hist, currentRange);
+    if(!s.t.length){ body.innerHTML = '<p style="color:var(--muted)">داده‌ای برای نمایش نیست.</p>'; return; }
+    var W=920,H=320,padL=70,padR=20,padT=20,padB=44;
+    var min=Math.min.apply(null,s.p), max=Math.max.apply(null,s.p);
+    var span=(max-min)||1; min-=span*0.08; max+=span*0.08;
+    var X=function(i){return padL + i*(W-padL-padR)/Math.max(1,s.p.length-1);};
+    var Y=function(v){return padT + (max-v)/(max-min)*(H-padT-padB);};
+    var path=s.p.map(function(v,i){return (i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1);}).join(" ");
+    var area=path+" L "+X(s.p.length-1).toFixed(1)+" "+(H-padB)+" L "+X(0).toFixed(1)+" "+(H-padB)+" Z";
+    var grid="";
+    for(var g=0; g<=4; g++){
+      var v=min+(max-min)*g/4, y=Y(v);
+      grid+='<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="#fff" stroke-opacity=".07"/>'+
+            '<text x="'+(padL-8)+'" y="'+(y+4)+'" text-anchor="end" fill="#69738A" font-size="11">'+fa(v)+'</text>';
+    }
+    var last=s.p[s.p.length-1], first=s.p[0];
+    var chg=(last-first)/first*100;
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto">'+
+      '<defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E08D4F" stop-opacity=".35"/><stop offset="1" stop-color="#E08D4F" stop-opacity="0"/></linearGradient></defs>'+
+      grid+'<path d="'+area+'" fill="url(#mg)"/><path d="'+path+'" fill="none" stroke="#E08D4F" stroke-width="3" stroke-linecap="round"/>'+
+      '<text x="'+X(0)+'" y="'+(H-14)+'" fill="#9AA4B4" font-size="11">'+s.t[0]+'</text>'+
+      '<text x="'+X(s.t.length-1)+'" y="'+(H-14)+'" text-anchor="end" fill="#9AA4B4" font-size="11">'+s.t[s.t.length-1]+'</text>'+
+      '</svg>';
+    var stats='<div class="mmodal-stats">'+
+      '<div class="mstat"><b>'+fa(first)+'</b><span>اول بازه</span></div>'+
+      '<div class="mstat"><b>'+fa(last)+'</b><span>آخرین</span></div>'+
+      '<div class="mstat"><b>'+fa(min+span*0.08)+'</b><span>کف بازه</span></div>'+
+      '<div class="mstat"><b style="color:'+(chg>=0?"var(--ok)":"var(--danger)")+'">'+(chg>=0?"+":"")+fa(chg)+'٪</b><span>تغییر بازه</span></div>'+
+      '</div>';
+    var rows="";
+    for(var r=s.t.length-1; r>=Math.max(0,s.t.length-10); r--){
+      rows+='<tr><td>'+s.t[r]+'</td><td class="lat">'+fa(s.p[r])+'</td><td>'+unit+'</td></tr>';
+    }
+    var table='<table class="mtable"><thead><tr><th>تاریخ</th><th>قیمت</th><th>واحد</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    body.innerHTML = stats + svg + '<h4 style="margin-top:18px;font-size:.9rem">قیمت‌های قبلی (۱۰ روز اخیر)</h4>' + table;
+  }
+
+  function openModal(meta){
+    current = meta; currentRange = 30;
+    titleEl.textContent = "نمودار قیمت " + meta.fa + " (" + meta.en + ")";
+    modal.classList.add("open"); modal.setAttribute("aria-hidden","false");
+    document.body.classList.add("locked");
+    var hist = (window.MARKET_HISTORY||{})[meta.sym];
+    if(!hist || !hist.t || !hist.t.length){
+      body.innerHTML = '<div style="text-align:center;padding:40px 10px;color:var(--muted)">'+
+        '<p style="font-size:1rem;margin-bottom:8px">برای <b>'+meta.fa+'</b> دادهٔ تاریخی روزانهٔ رایگان در دسترس نیست.</p>'+
+        '<p style="font-size:.8rem">قیمت فعلی: <b class="lat">'+fa(meta.price)+'</b> '+meta.unit+' — این فلز فقط قیمت مرجع/قراردادی دارد و نمودار تاریخی رایگان برای آن منتشر نمی‌شود.</p></div>';
+      return;
+    }
+    drawChart(hist, meta.sym, meta.unit);
+  }
+  function closeModal(){
+    modal.classList.remove("open"); modal.setAttribute("aria-hidden","true");
+    document.body.classList.remove("locked");
+  }
+  document.getElementById("mmRanges").addEventListener("click", function(e){
+    var b=e.target.closest("button"); if(!b||!current) return;
+    currentRange=+b.dataset.range;
+    Array.prototype.forEach.call(this.children,function(x){x.classList.remove("on");});
+    b.classList.add("on");
+    var hist=(window.MARKET_HISTORY||{})[current.sym];
+    if(hist) drawChart(hist, current.sym, current.unit);
+  });
+  modal.addEventListener("click", function(e){ if(e.target.closest("[data-mclose]")) closeModal(); });
+  document.addEventListener("keydown", function(e){ if(e.key==="Escape" && modal.classList.contains("open")) closeModal(); });
+
+  /* کلیک روی هر کارت فلز */
+  document.getElementById("marketGrid").addEventListener("click", function(e){
+    var card=e.target.closest(".metal"); if(!card) return;
+    var symEl=card.querySelector(".metal-sym"); if(!symEl) return;
+    var sym=symEl.textContent.trim();
+    var meta=null;
+    (window.MARKET_DATA||[]).forEach(function(m){ if(m.sym===sym) meta=m; });
+    if(meta) openModal(meta);
   });
 });
