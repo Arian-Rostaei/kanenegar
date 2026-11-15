@@ -1,10 +1,10 @@
-# پایپلاین انتشار روزانه: هر روز ایجنت را اجرا، داده را به‌روزرسانی و سایت را روی
-# GitHub Pages منتشر می‌کند. در تب Settings→Pages گزینهٔ Source را روی "GitHub Actions" بگذارید.
 name: daily-news
 
 on:
   schedule:
-    - cron: "30 6 * * *"   # هر روز ۰۶:۳۰ UTC (حدود ۱۰:۰۰ تهران)
+    - cron: "30 6 * * *"
+    - cron: "30 12 * * *"
+    - cron: "30 18 * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -39,11 +39,11 @@ jobs:
         run: |
           git config user.name  "kanenegar-agent"
           git config user.email "agent@kanenegar.local"
-          git add data/articles.js data/articles.json data/market.js
+          git add data/articles.js data/articles.json
           if git diff --cached --quiet; then
             echo "خبر تازه‌ای نبود؛ چیزی کامیت نشد."
           else
-            git commit -m "news: به‌روزرسانی روزانه $(date -u +%F)"
+            git commit -m "news: به‌روزرسانی $(date -u +%F-%H%M)"
             git push
           fi
 
