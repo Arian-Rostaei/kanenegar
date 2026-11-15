@@ -1,10 +1,10 @@
-/* نبض بازار — ترتیب: طلا، نقره، سپس بقیه به ترتیب محبوبیت. فقط فلزهای دارای قیمت. */
+/* نبض بازار — ترتیب: طلا، نقره، سپس بقیه. قیمت‌ها هر ساعت توسط ایجنت تازه می‌شوند. */
 window.MARKET_DATA = [
- {fa:"طلا",en:"Gold",sym:"Au",price:3882,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"gold-api",c:"#F5C84C",note:"🟢 زنده"},
- {fa:"نقره",en:"Silver",sym:"Ag",price:50.07,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"gold-api",c:"#C9D3E0",note:"🟢 زنده"},
+ {fa:"طلا",en:"Gold",sym:"Au",price:3882,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"—",c:"#F5C84C",note:"🟡 در انتظار به‌روزرسانی"},
+ {fa:"نقره",en:"Silver",sym:"Ag",price:50.07,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"—",c:"#C9D3E0",note:"🟡 در انتظار به‌روزرسانی"},
  {fa:"مس",en:"Copper",sym:"Cu",price:13712,unit:"دلار / تن",chg:-1.18,date:"2026-11-12",src:"LME / Westmetall",c:"#E08D4F",note:"🟡 مرجع روزانه"},
- {fa:"پلاتین",en:"Platinum",sym:"Pt",price:1520,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"gold-api",c:"#2DD4BF",note:"🟢 زنده"},
- {fa:"پالادیم",en:"Palladium",sym:"Pd",price:991,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"gold-api",c:"#A78BFA",note:"🟢 زنده"},
+ {fa:"پلاتین",en:"Platinum",sym:"Pt",price:1520,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"—",c:"#2DD4BF",note:"🟡 در انتظار به‌روزرسانی"},
+ {fa:"پالادیم",en:"Palladium",sym:"Pd",price:991,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"—",c:"#A78BFA",note:"🟡 در انتظار به‌روزرسانی"},
  {fa:"آلومینیوم",en:"Aluminum",sym:"Al",price:3135,unit:"دلار / تن",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#57A6FF",note:"🟡 مرجع"},
  {fa:"نیکل",en:"Nickel",sym:"Ni",price:15000,unit:"دلار / تن",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#3ECF8E",note:"🟡 مرجع"},
  {fa:"لیتیوم",en:"Lithium Carbonate",sym:"Li",price:13.9,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-04",src:"بازار چین",c:"#3ECF8E",note:"🟡 مرجع"},
@@ -35,15 +35,7 @@ window.COPPER_POINTS = [
  {d:"2026-11-12",v:13712,label:"آخرین ثبت",src:"Westmetall"}
 ];
 
-/* ===== رفتار بازار: به‌روزرسانی زنده + مودال نمودار تاریخی ===== */
 window.addEventListener("load", function () {
-  /* بارگذاری تاریخچهٔ ذخیره‌شده توسط ایجنت */
-  var hs = document.createElement("script");
-  hs.src = "data/market-history.js";
-  hs.onerror = function(){ window.MARKET_HISTORY = window.MARKET_HISTORY || {}; };
-  document.head.appendChild(hs);
-
-  var LIVE = {Au:"XAU", Ag:"XAG", Pt:"XPT", Pd:"XPD"};
   function findCard(sym){
     var all = Array.prototype.slice.call(document.querySelectorAll(".metal"));
     for (var i=0;i<all.length;i++){
@@ -52,36 +44,56 @@ window.addEventListener("load", function () {
     }
     return null;
   }
+  function setPrice(sym, price, badgeText, badgeClass, noteText){
+    var c = findCard(sym); if(!c) return;
+    var p = c.querySelector(".metal-price");
+    if(p) p.textContent = Number(price).toLocaleString("fa-IR",{maximumFractionDigits:2});
+    var ch = c.querySelector(".chg");
+    if(ch){ ch.className = "chg " + badgeClass; ch.textContent = badgeText; }
+    if(noteText){
+      var n = c.querySelector(".metal-note");
+      if(n) n.innerHTML = noteText;
+    }
+  }
+
+  /* لایهٔ ۱: قیمت ساعتی که ایجنت سمت سرور ذخیره کرده */
+  var hs = document.createElement("script");
+  hs.src = "data/prices-live.js";
+  hs.onload = function(){
+    var lp = window.LIVE_PRICES || {};
+    Object.keys(lp).forEach(function(sym){
+      setPrice(sym, lp[sym].price, "🟡 ساعتی", "up",
+        "🟡 به‌روزرسانی خودکار · " + lp[sym].ts + "<br><span style='opacity:.7'>منبع: " + lp[sym].src + "</span>");
+    });
+  };
+  hs.onerror = function(){ /* فایل هنوز ساخته نشده؛ لایهٔ بعدی تلاش می‌کند */ };
+  document.head.appendChild(hs);
+
+  /* لایهٔ ۲: تلاش برای قیمت لحظه‌ای مستقیم در مرورگر */
+  var LIVE = {Au:"XAU", Ag:"XAG", Pt:"XPT", Pd:"XPD"};
   Object.keys(LIVE).forEach(function(sym){
     fetch("https://api.gold-api.com/price/" + LIVE[sym])
-      .then(function(r){ return r.json(); })
+      .then(function(r){ if(!r.ok) throw new Error("http "+r.status); return r.json(); })
       .then(function(j){
         if(!j || typeof j.price !== "number") return;
-        var c = findCard(sym); if(!c) return;
-        var p = c.querySelector(".metal-price");
-        if(p) p.textContent = j.price.toLocaleString("fa-IR",{maximumFractionDigits:2});
-        var u = c.querySelector(".metal-unit");
-        if(u){ u.textContent = u.textContent.split("·")[0] + "· لحظه‌ای"; }
-        var ch = c.querySelector(".chg");
-        if(ch){ ch.className="chg up"; ch.textContent="● زنده"; }
-      }).catch(function(){});
+        setPrice(sym, j.price, "● زنده", "up",
+          "🟢 لحظه‌ای (همین حالا از بازار)<br><span style='opacity:.7'>منبع: gold-api.com</span>");
+      })
+      .catch(function(){ /* اگر نشد، همان قیمت ساعتی/مرجع می‌ماند و برچسبش صادق است */ });
   });
 
-  /* ===== مودال نمودار ===== */
+  /* ===== مودال نمودار (مثل قبل) ===== */
   var modal = document.getElementById("mmodal");
+  if(!modal) return;
   var body = document.getElementById("mmBody");
   var titleEl = document.getElementById("mmTitle");
   var current = null, currentRange = 30;
-
   function fa(n){ return Number(n).toLocaleString("fa-IR",{maximumFractionDigits:2}); }
-
   function sliceByRange(hist, days){
-    var t = hist.t, p = hist.p;
-    var n = Math.min(days, t.length);
-    return { t: t.slice(t.length-n), p: p.slice(p.length-n) };
+    var n = Math.min(days, hist.t.length);
+    return { t: hist.t.slice(hist.t.length-n), p: hist.p.slice(hist.p.length-n) };
   }
-
-  function drawChart(hist, sym, unit){
+  function drawChart(hist, unit){
     var s = sliceByRange(hist, currentRange);
     if(!s.t.length){ body.innerHTML = '<p style="color:var(--muted)">داده‌ای برای نمایش نیست.</p>'; return; }
     var W=920,H=320,padL=70,padR=20,padT=20,padB=44;
@@ -108,7 +120,7 @@ window.addEventListener("load", function () {
     var stats='<div class="mmodal-stats">'+
       '<div class="mstat"><b>'+fa(first)+'</b><span>اول بازه</span></div>'+
       '<div class="mstat"><b>'+fa(last)+'</b><span>آخرین</span></div>'+
-      '<div class="mstat"><b>'+fa(min+span*0.08)+'</b><span>کف بازه</span></div>'+
+      '<div class="mstat"><b>'+fa(Math.min.apply(null,s.p))+'</b><span>کف بازه</span></div>'+
       '<div class="mstat"><b style="color:'+(chg>=0?"var(--ok)":"var(--danger)")+'">'+(chg>=0?"+":"")+fa(chg)+'٪</b><span>تغییر بازه</span></div>'+
       '</div>';
     var rows="";
@@ -118,7 +130,6 @@ window.addEventListener("load", function () {
     var table='<table class="mtable"><thead><tr><th>تاریخ</th><th>قیمت</th><th>واحد</th></tr></thead><tbody>'+rows+'</tbody></table>';
     body.innerHTML = stats + svg + '<h4 style="margin-top:18px;font-size:.9rem">قیمت‌های قبلی (۱۰ روز اخیر)</h4>' + table;
   }
-
   function openModal(meta){
     current = meta; currentRange = 30;
     titleEl.textContent = "نمودار قیمت " + meta.fa + " (" + meta.en + ")";
@@ -128,10 +139,10 @@ window.addEventListener("load", function () {
     if(!hist || !hist.t || !hist.t.length){
       body.innerHTML = '<div style="text-align:center;padding:40px 10px;color:var(--muted)">'+
         '<p style="font-size:1rem;margin-bottom:8px">برای <b>'+meta.fa+'</b> دادهٔ تاریخی روزانهٔ رایگان در دسترس نیست.</p>'+
-        '<p style="font-size:.8rem">قیمت فعلی: <b class="lat">'+fa(meta.price)+'</b> '+meta.unit+' — این فلز فقط قیمت مرجع/قراردادی دارد و نمودار تاریخی رایگان برای آن منتشر نمی‌شود.</p></div>';
+        '<p style="font-size:.8rem">قیمت فعلی: <b class="lat">'+fa(meta.price)+'</b> '+meta.unit+'</p></div>';
       return;
     }
-    drawChart(hist, meta.sym, meta.unit);
+    drawChart(hist, meta.unit);
   }
   function closeModal(){
     modal.classList.remove("open"); modal.setAttribute("aria-hidden","true");
@@ -143,17 +154,14 @@ window.addEventListener("load", function () {
     Array.prototype.forEach.call(this.children,function(x){x.classList.remove("on");});
     b.classList.add("on");
     var hist=(window.MARKET_HISTORY||{})[current.sym];
-    if(hist) drawChart(hist, current.sym, current.unit);
+    if(hist) drawChart(hist, current.unit);
   });
   modal.addEventListener("click", function(e){ if(e.target.closest("[data-mclose]")) closeModal(); });
   document.addEventListener("keydown", function(e){ if(e.key==="Escape" && modal.classList.contains("open")) closeModal(); });
-
-  /* کلیک روی هر کارت فلز */
   document.getElementById("marketGrid").addEventListener("click", function(e){
     var card=e.target.closest(".metal"); if(!card) return;
     var symEl=card.querySelector(".metal-sym"); if(!symEl) return;
-    var sym=symEl.textContent.trim();
-    var meta=null;
+    var sym=symEl.textContent.trim(); var meta=null;
     (window.MARKET_DATA||[]).forEach(function(m){ if(m.sym===sym) meta=m; });
     if(meta) openModal(meta);
   });
