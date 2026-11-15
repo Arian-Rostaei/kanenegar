@@ -1,0 +1,1 @@
+window.LIVE_PRICES = {"Au": {"price": 3887.6, "src": "gold-api.com", "ts": "2026-11-15 14:40 UTC"}, "Ag": {"price": 48.65, "src": "gold-api.com", "ts": "2026-11-15 14:40 UTC"}, "Pt": {"price": 1492.2, "src": "gold-api.com", "ts": "2026-11-15 14:40 UTC"}, "Pd": {"price": 1000.0, "src": "gold-api.com", "ts": "2026-11-15 14:40 UTC"}};
