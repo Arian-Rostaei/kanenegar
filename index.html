@@ -34,7 +34,6 @@ body.locked{overflow:hidden}
 ::-webkit-scrollbar{width:11px;height:11px}
 ::-webkit-scrollbar-track{background:var(--bg2)}
 ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--copper),var(--copper2));border-radius:8px;border:2px solid var(--bg2)}
-::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--amber),var(--copper))}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input,select{font-family:inherit;color:inherit}
@@ -174,7 +173,7 @@ section{scroll-margin-top:calc(var(--head) + 14px)}
 .empty p{color:var(--muted);font-size:.86rem;margin-bottom:18px}
 .market{padding:46px 0}
 .market-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:18px}
-.metal{background:var(--surface);border:1px solid var(--line);border-radius:var(--rad);padding:16px;position:relative;overflow:hidden;transition:.3s var(--ease)}
+.metal{background:var(--surface);border:1px solid var(--line);border-radius:var(--rad);padding:16px;position:relative;overflow:hidden;transition:.3s var(--ease);cursor:pointer}
 .metal:hover{transform:translateY(-4px);border-color:var(--line2)}
 .metal::before{content:"";position:absolute;top:0;inset-inline:0;height:3px;background:linear-gradient(90deg,var(--mc),transparent)}
 .metal-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -198,6 +197,24 @@ section{scroll-margin-top:calc(var(--head) + 14px)}
 .chart-src{color:var(--faint);font-size:.68rem;margin-top:10px}
 .market-note{display:flex;gap:10px;align-items:flex-start;background:rgba(87,166,255,.07);border:1px solid rgba(87,166,255,.22);border-radius:var(--rad-s);padding:13px 16px;margin-top:16px;font-size:.76rem;color:#B9CBE8}
 .market-note svg{width:17px;height:17px;flex-shrink:0;margin-top:3px;color:var(--info)}
+/* مودال نمودار فلز */
+.mmodal{position:fixed;inset:0;z-index:260;display:none}
+.mmodal.open{display:block}
+.mmodal-back{position:absolute;inset:0;background:rgba(5,6,9,.75);backdrop-filter:blur(8px)}
+.mmodal-panel{position:absolute;inset:0;margin:auto;width:min(1000px,94vw);height:min(680px,90vh);background:var(--bg2);border:1px solid var(--line2);border-radius:22px;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow)}
+.mmodal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.mmodal-head h3{font-size:1.1rem;font-weight:800}
+.mmodal-ranges{display:flex;gap:6px}
+.mmodal-ranges button{padding:7px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-size:.76rem;font-weight:700;color:var(--muted);transition:.2s}
+.mmodal-ranges button.on{background:rgba(224,141,79,.16);border-color:var(--copper);color:var(--amber)}
+.mmodal-body{flex:1;overflow-y:auto;padding:20px}
+.mmodal-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.mstat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-align:center}
+.mstat b{display:block;font-size:1rem;font-weight:800}
+.mstat span{font-size:.66rem;color:var(--faint)}
+.mtable{width:100%;border-collapse:collapse;margin-top:16px;font-size:.76rem}
+.mtable th,.mtable td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:start}
+.mtable th{color:var(--faint);font-weight:700}
 .about{padding:46px 0}
 .about-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:22px}
 .pipeline{background:var(--surface);border:1px solid var(--line);border-radius:var(--rad);padding:26px}
@@ -212,11 +229,9 @@ section{scroll-margin-top:calc(var(--head) + 14px)}
 .src-item:hover{border-color:var(--copper);transform:translateX(-3px)}
 .src-item .n{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:.68rem;font-weight:800;background:rgba(224,141,79,.15);color:var(--copper);flex-shrink:0}
 .src-item .cnt{margin-inline-start:auto;font-size:.68rem;color:var(--faint)}
-.src-item svg{width:13px;height:13px;color:var(--faint)}
 .honesty{margin-top:16px;font-size:.72rem;color:var(--faint);line-height:1.9;background:rgba(242,179,61,.06);border:1px solid rgba(242,179,61,.2);border-radius:12px;padding:12px 14px}
 .newsletter{padding:46px 0 60px}
 .nl-card{position:relative;border-radius:26px;overflow:hidden;border:1px solid var(--line2);background:linear-gradient(130deg,rgba(201,111,59,.18),rgba(18,22,31,.9) 45%,rgba(87,166,255,.12));padding:44px 36px;text-align:center}
-.nl-card::before{content:"";position:absolute;top:-60px;inset-inline-end:-40px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(242,179,61,.22),transparent 70%)}
 .nl-card h2{font-size:clamp(1.3rem,2.6vw,1.8rem);font-weight:800;margin-bottom:10px;position:relative}
 .nl-card p{color:var(--muted);font-size:.88rem;max-width:56ch;margin:0 auto 24px;position:relative}
 .nl-form{display:flex;gap:10px;max-width:480px;margin:0 auto;position:relative;flex-wrap:wrap;justify-content:center}
@@ -236,7 +251,7 @@ footer{border-top:1px solid var(--line);background:rgba(10,12,16,.7);padding:40p
 .reader.open{display:block}
 .reader-backdrop{position:absolute;inset:0;background:rgba(5,6,9,.72);backdrop-filter:blur(8px);opacity:0;transition:opacity .3s}
 .reader.open .reader-backdrop{opacity:1}
-.reader-panel{position:absolute;top:0;bottom:0;inset-inline-start:0;width:min(880px,100%);background:var(--bg2);border-inline-end:1px solid var(--line2);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .42s var(--ease);box-shadow:-30px 0 80px rgba(0,0,0,.5)}
+.reader-panel{position:absolute;top:0;bottom:0;inset-inline-start:0;width:100%;background:var(--bg2);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .42s var(--ease)}
 .reader.open .reader-panel{transform:none}
 .reader-progress{height:3px;background:rgba(255,255,255,.06);flex-shrink:0}
 .reader-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--amber),var(--copper),var(--magenta))}
@@ -245,10 +260,10 @@ footer{border-top:1px solid var(--line);background:rgba(10,12,16,.7);padding:40p
 .reader-top .close-btn:hover{color:var(--danger);border-color:rgba(240,96,93,.4)}
 .reader-actions{display:flex;gap:7px}
 .reader-scroll{overflow-y:auto;flex:1;overscroll-behavior:contain}
-.reader-hero{position:relative;height:280px;overflow:hidden}
+.reader-hero{position:relative;height:340px;overflow:hidden}
 .reader-hero svg{width:100%;height:100%}
 .reader-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,var(--bg2) 2%,transparent 60%)}
-.reader-body{padding:8px 34px 44px;max-width:760px;margin:0 auto}
+.reader-body{padding:8px 34px 44px;max-width:1000px;margin:0 auto}
 .reader-title{font-size:clamp(1.4rem,3vw,2rem);font-weight:800;line-height:1.6;letter-spacing:-.02em;margin:14px 0 12px;text-wrap:balance}
 .reader-lede{color:#C6CDD9;font-size:.98rem;line-height:2;margin-bottom:16px}
 .reader-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--faint);font-size:.76rem;padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:20px}
@@ -293,13 +308,12 @@ footer{border-top:1px solid var(--line);background:rgba(10,12,16,.7);padding:40p
 @keyframes toastOut{to{opacity:0;transform:translateY(10px)}}
 .fab{position:fixed;bottom:22px;inset-inline-end:22px;z-index:90;width:48px;height:48px;border-radius:15px;background:linear-gradient(140deg,var(--amber),var(--copper2));color:#221204;display:grid;place-items:center;box-shadow:0 12px 30px -10px rgba(224,141,79,.8);opacity:0;pointer-events:none;transform:translateY(14px);transition:.35s var(--ease)}
 .fab.show{opacity:1;pointer-events:auto;transform:none}
-.fab:hover{transform:translateY(-3px)}
 .fab svg{width:20px;height:20px}
 .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
 .reveal.in{opacity:1;transform:none}
 @media(max-width:1080px){.grid{grid-template-columns:repeat(2,1fr)}.market-grid{grid-template-columns:repeat(3,1fr)}.hero-grid{grid-template-columns:1fr}.hero-side{flex-direction:row}.about-grid{grid-template-columns:1fr}}
-@media(max-width:900px){.main-nav{display:none}.menu-toggle{display:grid}.head-actions .btn-primary{display:none}.hero-stats{grid-template-columns:repeat(2,1fr)}.foot-grid{grid-template-columns:1fr 1fr}.reader-body{padding:8px 22px 40px}.rel-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:640px){:root{--head:100px}.wrap{padding:0 16px}.grid{grid-template-columns:1fr}.grid.list .card{flex-direction:column}.grid.list .card-art{width:100%;aspect-ratio:16/9}.market-grid{grid-template-columns:repeat(2,1fr)}.hero-side{flex-direction:column}.hero-content{padding:22px}.hero-feature{min-height:380px}.ticker-label .txt{display:none}.foot-grid{grid-template-columns:1fr}.reader-panel{width:100%}.reader-hero{height:200px}.reader-nav{flex-direction:column}.nl-card{padding:32px 20px}.head-row{padding:10px 16px}.brand-sub{display:none}.facts{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.main-nav{display:none}.menu-toggle{display:grid}.head-actions .btn-primary{display:none}.hero-stats{grid-template-columns:repeat(2,1fr)}.foot-grid{grid-template-columns:1fr 1fr}.reader-body{padding:8px 22px 40px}.rel-grid{grid-template-columns:1fr 1fr}.mmodal-stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){:root{--head:100px}.wrap{padding:0 16px}.grid{grid-template-columns:1fr}.grid.list .card{flex-direction:column}.grid.list .card-art{width:100%;aspect-ratio:16/9}.market-grid{grid-template-columns:repeat(2,1fr)}.hero-side{flex-direction:column}.hero-content{padding:22px}.hero-feature{min-height:380px}.ticker-label .txt{display:none}.foot-grid{grid-template-columns:1fr}.reader-hero{height:200px}.reader-nav{flex-direction:column}.nl-card{padding:32px 20px}.head-row{padding:10px 16px}.brand-sub{display:none}.facts{grid-template-columns:1fr 1fr}.mmodal-panel{width:100vw;height:100vh;border-radius:0}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001s!important;transition-duration:.001s!important;scroll-behavior:auto!important}.ticker-track{animation:none}.card,.reveal{opacity:1;transform:none}}
 </style>
 </head>
@@ -399,15 +413,15 @@ footer{border-top:1px solid var(--line);background:rgba(10,12,16,.7);padding:40p
     <div class="wrap">
       <div class="sec-head reveal">
         <div>
-          <span class="eyebrow">◆ داده‌های واقعی بازار</span>
+          <span class="eyebrow">◆ داده‌های بازار — برای نمودار روی هر فلز کلیک کن</span>
           <h2 class="sec-title"><span class="bar"></span>نبض بازار فلزات</h2>
-          <p class="sec-sub">آخرین قیمت‌های ثبت‌شده در منابع رسمی — به‌روزرسانی روزانه توسط ایجنت</p>
+          <p class="sec-sub">به ترتیب محبوبیت: طلا، نقره، سپس بقیه. روی هر کارت کلیک کن تا نمودار روزانه/ماهانه/سالانه و قیمت‌های قبلی باز شود.</p>
         </div>
       </div>
       <div class="market-grid reveal" id="marketGrid"></div>
       <div class="chart-card reveal">
         <div class="chart-head">
-          <div><h3>مس — نقاط عطف ثبت‌شده در گزارش‌ها</h3><p>قیمت سه‌ماههٔ LME (دلار بر تن) — نقاط منتخب گزارش‌شده، نه سری پیوستهٔ روزانه</p></div>
+          <div><h3>مس — نقاط عطف ثبت‌شده در گزارش‌ها</h3><p>قیمت سه‌ماههٔ LME (دلار بر تن) — نقاط منتخب گزارش‌شده</p></div>
           <span class="chip" style="color:var(--copper);border-color:rgba(224,141,79,.4);background:rgba(224,141,79,.1)">LME Copper 3M</span>
         </div>
         <div class="chart-wrap" id="copperChartWrap"><div class="chart-tip" id="chartTip"></div></div>
@@ -415,7 +429,7 @@ footer{border-top:1px solid var(--line);background:rgba(10,12,16,.7);padding:40p
       </div>
       <div class="market-note reveal">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
-        <span>این اعداد «قیمت لحظه‌ای» نیستند؛ آخرین مقادیر ثبت‌شده در منابع ذکرشده‌اند و ممکن است با نرخ‌های معاملاتی لحظه‌ای تفاوت داشته باشند. برای تصمیم‌های مالی به منبع اصلی مراجعه کنید.</span>
+        <span>طلا/نقره/پلاتین/پالادیم به‌صورت لحظه‌ای به‌روز می‌شوند. نمودارهای تاریخی از دادهٔ روزانهٔ ذخیره‌شده توسط ایجنت ساخته می‌شوند؛ برای فلزهایی که دادهٔ تاریخی رایگان ندارند پیام صادقانه نمایش داده می‌شود.</span>
       </div>
     </div>
   </section>
@@ -426,21 +440,21 @@ footer{border-top:1px solid var(--line);background:rgba(10,12,16,.7);padding:40p
         <div>
           <span class="eyebrow">◆ شفافیت کامل</span>
           <h2 class="sec-title"><span class="bar"></span>ایجنت کانه‌نگار چگونه کار می‌کند؟</h2>
-          <p class="sec-sub">هر روز به‌صورت خودکار از منابع بین‌المللی رصد، گزینش و به فارسی ترجمه می‌شود.</p>
+          <p class="sec-sub">هر روز به‌صورت خودکار از منابع جهانی و آسیایی رصد، گزینش و به فارسی ترجمه می‌شود.</p>
         </div>
       </div>
       <div class="about-grid">
         <div class="pipeline reveal">
-          <div class="pipe-step"><div class="pipe-num">۱</div><div><h4>رصد منابع معتبر</h4><p>ایجنت به‌صورت هدفمند رسانه‌های تخصصی معدن، خبرگزاری‌های مالی و نهادهای علمی را برای اخبار زمین‌شناسی با تمرکز بر معادن و فلزات جستجو می‌کند.</p></div></div>
-          <div class="pipe-step"><div class="pipe-num">۲</div><div><h4>گزینش و راستی‌آزمایی</h4><p>خبرهای کم‌اهمیت یا تبلیغاتی کنار گذاشته می‌شوند؛ اعداد، تاریخ‌ها و نام‌ها با متن اصلی تطبیق داده می‌شود و اولویت با رویدادهای اثرگذار بر زنجیرهٔ تأمین فلزات است.</p></div></div>
-          <div class="pipe-step"><div class="pipe-num">۳</div><div><h4>ترجمهٔ تخصصی به فارسی</h4><p>متن با حفظ اصطلاحات فنی (کنسانتره، پگماتیت، و…) به فارسی روان برگردانده می‌شود و «اعداد کلیدی» هر خبر در یک نگاه استخراج می‌گردد.</p></div></div>
-          <div class="pipe-step"><div class="pipe-num">۴</div><div><h4>انتشار با ذکر منبع</h4><p>هر مقاله با نام رسانه، عنوان اصلی و لینک مستقیم منتشر می‌شود تا خواننده بتواند اصل خبر را ببیند. آرشیو کامل نیز قابل دریافت است.</p></div></div>
+          <div class="pipe-step"><div class="pipe-num">۱</div><div><h4>رصد منابع معتبر</h4><p>ایجنت رسانه‌های تخصصی معدن، خبرگزاری‌های مالی و منابع آسیایی/آسیای شرقی را برای اخبار زمین‌شناسی، معادن و فلزات جستجو می‌کند.</p></div></div>
+          <div class="pipe-step"><div class="pipe-num">۲</div><div><h4>گزینش و راستی‌آزمایی</h4><p>خبرهای کم‌اهمیت کنار گذاشته می‌شوند؛ اعداد و نام‌ها با متن اصلی تطبیق داده می‌شود و حداکثر دو خبر از هر منبع انتخاب می‌شود تا تنوع رسانه‌ای حفظ شود.</p></div></div>
+          <div class="pipe-step"><div class="pipe-num">۳</div><div><h4>ترجمه و تحلیل چندوجهی</h4><p>هر خبر به فارسی ترجمه و از لنزهای صنعت، سیاست/ژئوپلیتیک، کاربردهای نظامی و تحلیل قیمت بررسی می‌شود.</p></div></div>
+          <div class="pipe-step"><div class="pipe-num">۴</div><div><h4>انتشار با ذکر منبع</h4><p>هر مقاله با نام رسانه، عنوان اصلی و لینک مستقیم منتشر می‌شود؛ دادهٔ تاریخی قیمت‌ها نیز برای نمودارها ذخیره می‌گردد.</p></div></div>
         </div>
         <div class="sources-card reveal">
           <span class="eyebrow">◆ منابع این نسخه</span>
           <h3 style="font-size:1.05rem;font-weight:800;margin-top:8px">رسانه‌ها و نهادهای رصدشده</h3>
           <div class="src-list" id="srcList"></div>
-          <div class="honesty">⚠️ ترجمه‌ها توسط ایجنت هوش مصنوعی تهیه شده‌اند و ممکن است خطای جزئی داشته باشند. متن حاضر «بازنویسی و ترجمهٔ خبری» است، نه کپی کامل متن اصلی؛ برای استناد رسمی همواره به منبع اصلی لینک‌شده مراجعه کنید. این سایت هیچ وابستگی رسمی به رسانه‌های ذکرشده ندارد.</div>
+          <div class="honesty">⚠️ ترجمه‌ها توسط ایجنت هوش مصنوعی تهیه شده‌اند و ممکن است خطای جزئی داشته باشند. متن حاضر «بازنویسی و ترجمهٔ خبری» است، نه کپی کامل متن اصلی؛ برای استناد رسمی همواره به منبع اصلی لینک‌شده مراجعه کنید.</div>
         </div>
       </div>
     </div>
@@ -471,7 +485,7 @@ footer{border-top:1px solid var(--line);background:rgba(10,12,16,.7);padding:40p
           <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 56 18v28L32 60 8 46V18Z" fill="url(#bm)"/><path d="M32 4 56 18 32 32 8 18Z" fill="#fff" opacity=".28"/><path d="M32 32v28L8 46V18Z" fill="#000" opacity=".2"/></svg>
           <span class="brand-name">کانه‌نگار</span>
         </a>
-        <p>رصدخانهٔ مستقل اخبار زمین‌شناسی، معادن و فلزات — ترجمهٔ فارسی اخبار معتبر جهان با ذکر منبع. ساخته‌شده توسط ایجنت، برای خوانندهٔ فارسی‌زبان.</p>
+        <p>رصدخانهٔ مستقل اخبار زمین‌شناسی، معادن و فلزات — ترجمهٔ فارسی اخبار معتبر جهان و آسیا با ذکر منبع.</p>
       </div>
       <div class="foot-col">
         <h4>بخش‌ها</h4>
@@ -527,10 +541,27 @@ footer{border-top:1px solid var(--line);background:rgba(10,12,16,.7);padding:40p
   </article>
 </div>
 
+<div class="mmodal" id="mmodal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="mmodal-back" data-mclose></div>
+  <div class="mmodal-panel">
+    <div class="mmodal-head">
+      <h3 id="mmTitle">نمودار قیمت</h3>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="mmodal-ranges" id="mmRanges">
+          <button data-range="30" class="on">روزانه (۱ ماه)</button>
+          <button data-range="180">ماهانه (۶ ماه)</button>
+          <button data-range="365">سالانه (۱ سال)</button>
+        </div>
+        <button class="icon-btn" data-mclose aria-label="بستن نمودار"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
+    </div>
+    <div class="mmodal-body" id="mmBody"></div>
+  </div>
+</div>
+
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <button class="fab" id="backTop" aria-label="بازگشت به بالا"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 19V5m0 0-6 6m6-6 6 6"/></svg></button>
 
-<!-- دادهٔ مقالات: این فایل را ایجنت هر روز بازنویسی می‌کند؛ نیازی به ویرایش صفحه نیست -->
 <script src="data/articles.js"></script>
 <script>
 "use strict";
@@ -541,7 +572,11 @@ const CATS = {
   rare:{fa:"عناصر خاکی کمیاب", c:"#A78BFA"},
   iron:{fa:"سنگ‌آهن و فولاد", c:"#57A6FF"},
   geo:{fa:"اکتشاف و زمین‌شناسی", c:"#2DD4BF"},
-  market:{fa:"بازار و فناوری", c:"#F472B6"}
+  market:{fa:"بازار و فناوری", c:"#F472B6"},
+  industry:{fa:"فلزات در صنعت", c:"#57A6FF"},
+  politics:{fa:"سیاست و ژئوپلیتیک", c:"#F0605D"},
+  defense:{fa:"کاربردهای نظامی", c:"#A78BFA"},
+  analysis:{fa:"تحلیل قیمت و بازار", c:"#F2B33D"}
 };
 const ARTICLES = Array.isArray(window.ARTICLES_DATA) ? window.ARTICLES_DATA : [];
 </script>
