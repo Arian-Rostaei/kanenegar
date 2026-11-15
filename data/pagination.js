@@ -1,7 +1,7 @@
-/* صفحه‌بندی سبک: ۴۰ خبر اول + دکمهٔ قدیمی‌تر | ۵ منبع اول + دکمهٔ بقیه */
+/* صفحه‌بندی سبک: ۱۵ خبر اول + دکمهٔ قدیمی‌تر | ۳ منبع اول + دکمهٔ بقیه */
 (function(){
-  var FEED_STEP = 40;
-  var SRC_LIMIT = 5;
+  var FEED_STEP = 15;
+  var SRC_LIMIT = 3;
   var feedLimit = FEED_STEP;
   var srcExpanded = false;
 
