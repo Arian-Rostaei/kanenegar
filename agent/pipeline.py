@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""ایجنت روزانه: خبر چندمنبعی (جهانی+آسیایی)، ترجمهٔ تحلیلی، ذخیرهٔ تاریخچهٔ قیمت."""
+"""ایجنت روزانه: خبر چندمنبعی (جهانی+آسیایی)، ترجمهٔ تحلیلی، ذخیرهٔ تاریخچهٔ قیمت.
+نکته: اگر منبع زندهٔ تاریخچه در دسترس نباشد، تاریخچهٔ خوبِ قبلی حفظ می‌شود.
+"""
 import datetime as dt
 import hashlib
 import html
@@ -154,6 +156,16 @@ def fetch_history():
                 log(f"تاریخچه {sym}: {len(t)} روز")
         except Exception as e:
             log(f"تاریخچه {sym} دریافت نشد:", str(e)[:80])
+    # نگهبان: اگر هیچ منبع زنده‌ای جواب نداد، تاریخچهٔ خوب قبلی را حفظ کن
+    if not hist and HISTORY_JS.exists():
+        try:
+            txt = HISTORY_JS.read_text(encoding="utf-8")
+            m = re.search(r"window\.MARKET_HISTORY = (\{.*\});", txt, re.S)
+            if m:
+                hist = json.loads(m.group(1))
+                log("تاریخچه از فایل موجود بازیابی شد (منبع زنده در دسترس نبود).")
+        except Exception:
+            pass
     return hist
 
 
@@ -165,7 +177,7 @@ def write_outputs(articles, hist):
         "window.ARTICLES_DATA = " + json.dumps(articles, ensure_ascii=False) + ";\n",
         encoding="utf-8")
     HISTORY_JS.write_text(
-        "/* تاریخچهٔ روزانه قیمت — ایجنت روزانه بازنویسی می‌کند. */\n"
+        "/* تاریخچهٔ روزانه قیمت — ایجنت بازنویسی می‌کند. */\n"
         "window.MARKET_HISTORY = " + json.dumps(hist, ensure_ascii=False) + ";\n",
         encoding="utf-8")
     log(f"نوشتن {len(articles)} مقاله + تاریخچهٔ {len(hist)} فلز")
@@ -210,7 +222,7 @@ def main():
     hist = fetch_history()
 
     if not new_articles:
-        log("خبر تازه‌ای برای انتشار نبود؛ فقط تاریخچه به‌روز شد.")
+        log("خبر تازه‌ای برای انتشار نبود؛ فقط تاریخچه به‌روز/حفظ شد.")
         write_outputs(existing, hist)
         return
 
