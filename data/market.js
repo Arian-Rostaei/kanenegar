@@ -1,41 +1,24 @@
-/* نبض بازار — ترتیب: طلا، نقره، سپس بقیه. قیمت‌ها هر ساعت توسط ایجنت تازه می‌شوند. */
+/* نبض بازار — فقط فلزهایی که قیمتشون واقعاً به‌روز می‌شه.
+   لایهٔ ۱: قیمت ساعتی که ایجنت سمت سرور ذخیره کرده (prices-live.js)
+   لایهٔ ۲: قیمت لحظه‌ای مستقیم در مرورگر (gold-api)
+   نمودار تاریخی: market-history.js (ساعتی توسط ایجنت) */
 window.MARKET_DATA = [
- {fa:"طلا",en:"Gold",sym:"Au",price:3882,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"—",c:"#F5C84C",note:"🟡 در انتظار به‌روزرسانی"},
- {fa:"نقره",en:"Silver",sym:"Ag",price:50.07,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"—",c:"#C9D3E0",note:"🟡 در انتظار به‌روزرسانی"},
- {fa:"مس",en:"Copper",sym:"Cu",price:13712,unit:"دلار / تن",chg:-1.18,date:"2026-11-12",src:"LME / Westmetall",c:"#E08D4F",note:"🟡 مرجع روزانه"},
- {fa:"پلاتین",en:"Platinum",sym:"Pt",price:1520,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"—",c:"#2DD4BF",note:"🟡 در انتظار به‌روزرسانی"},
- {fa:"پالادیم",en:"Palladium",sym:"Pd",price:991,unit:"دلار / اونس",chg:0,date:"2026-11-14",src:"—",c:"#A78BFA",note:"🟡 در انتظار به‌روزرسانی"},
- {fa:"آلومینیوم",en:"Aluminum",sym:"Al",price:3135,unit:"دلار / تن",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#57A6FF",note:"🟡 مرجع"},
- {fa:"نیکل",en:"Nickel",sym:"Ni",price:15000,unit:"دلار / تن",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#3ECF8E",note:"🟡 مرجع"},
- {fa:"لیتیوم",en:"Lithium Carbonate",sym:"Li",price:13.9,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-04",src:"بازار چین",c:"#3ECF8E",note:"🟡 مرجع"},
- {fa:"سنگ‌آهن",en:"Iron Ore",sym:"Fe",price:90,unit:"دلار / تن",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#57A6FF",note:"🟡 مرجع"},
- {fa:"روی",en:"Zinc",sym:"Zn",price:3000,unit:"دلار / تن",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#57A6FF",note:"🟡 مرجع"},
- {fa:"قلع",en:"Tin",sym:"Sn",price:30000,unit:"دلار / تن",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#57A6FF",note:"🟡 مرجع"},
- {fa:"کبالت",en:"Cobalt",sym:"Co",price:33,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#3ECF8E",note:"🟡 مرجع"},
- {fa:"اورانیوم",en:"Uranium",sym:"U",price:85,unit:"دلار / پوند",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#3ECF8E",note:"🟡 مرجع"},
- {fa:"منگنز",en:"Manganese",sym:"Mn",price:2.2,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#2DD4BF",note:"🟡 تخمینی"},
- {fa:"نئودیمیم-پرازئودیمیم",en:"NdPr",sym:"Nd",price:110,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-11",src:"کف قرارداد USAR",c:"#A78BFA",note:"🟡 قراردادی"},
- {fa:"دیسپروسیم",en:"Dysprosium",sym:"Dy",price:575,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-11",src:"کف قرارداد USAR",c:"#A78BFA",note:"🟡 قراردادی"},
- {fa:"تربیوم",en:"Terbium",sym:"Tb",price:2050,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-11",src:"کف قرارداد USAR",c:"#A78BFA",note:"🟡 قراردادی"},
- {fa:"تنگستن",en:"Tungsten",sym:"W",price:45,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#2DD4BF",note:"🟡 تخمینی"},
- {fa:"مولیبدن",en:"Molybdenum",sym:"Mo",price:50,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#2DD4BF",note:"🟡 تخمینی"},
- {fa:"تیتانیوم",en:"Titanium",sym:"Ti",price:8,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#57A6FF",note:"🟡 تخمینی"},
- {fa:"منیزیم",en:"Magnesium",sym:"Mg",price:2.4,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#57A6FF",note:"🟡 تخمینی"},
- {fa:"ایندیم",en:"Indium",sym:"In",price:250,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#2DD4BF",note:"🟡 تخمینی"},
- {fa:"گالیم",en:"Gallium",sym:"Ga",price:300,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#2DD4BF",note:"🟡 تخمینی"},
- {fa:"ژرمانیم",en:"Germanium",sym:"Ge",price:1500,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#2DD4BF",note:"🟡 تخمینی"},
- {fa:"آنتیموان",en:"Antimony",sym:"Sb",price:15,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#2DD4BF",note:"🟡 تخمینی"},
- {fa:"رودیم",en:"Rhodium",sym:"Rh",price:150000,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#F5C84C",note:"🟡 تخمینی"},
- {fa:"ایریدیم",en:"Iridium",sym:"Ir",price:160000,unit:"دلار / کیلوگرم",chg:0,date:"2026-11-14",src:"ارزیابی مرجع",c:"#F5C84C",note:"🟡 تخمینی"}
+ {fa:"طلا",en:"Gold",sym:"Au",price:0,unit:"دلار / اونس",chg:0,date:"",src:"—",c:"#F5C84C",note:"🟡 در حال دریافت قیمت…"},
+ {fa:"نقره",en:"Silver",sym:"Ag",price:0,unit:"دلار / اونس",chg:0,date:"",src:"—",c:"#C9D3E0",note:"🟡 در حال دریافت قیمت…"},
+ {fa:"پلاتین",en:"Platinum",sym:"Pt",price:0,unit:"دلار / اونس",chg:0,date:"",src:"—",c:"#2DD4BF",note:"🟡 در حال دریافت قیمت…"},
+ {fa:"پالادیم",en:"Palladium",sym:"Pd",price:0,unit:"دلار / اونس",chg:0,date:"",src:"—",c:"#A78BFA",note:"🟡 در حال دریافت قیمت…"}
 ];
-window.COPPER_POINTS = [
- {d:"2026-01-29",v:14527.5,label:"رکورد ژانویه",src:"Benchmark"},
- {d:"2026-08-14",v:14100,label:"بالای 14٬100",src:"MINING.COM"},
- {d:"2026-09-10",v:14875,label:"سقف 2026",src:"Fastmarkets"},
- {d:"2026-11-12",v:13712,label:"آخرین ثبت",src:"Westmetall"}
-];
+window.COPPER_POINTS = [];
 
 window.addEventListener("load", function () {
+  /* پاک‌سازی: کارت خالی مس و متن‌های قدیمی پنهان/اصلاح می‌شن */
+  var cc = document.querySelector(".chart-card");
+  if (cc && !(window.COPPER_POINTS || []).length) cc.style.display = "none";
+  var mn = document.querySelector(".market-note span");
+  if (mn) mn.textContent = "طلا، نقره، پلاتین و پالادیم به‌صورت ساعتی (توسط ایجنت) و در صورت اتصال مرورگر به‌صورت لحظه‌ای به‌روز می‌شوند و نمودار تاریخی دارند. فلزهایی که منبع قیمت زندهٔ رایگان ندارند حذف شده‌اند تا هیچ عدد کهنه‌ای به‌جای قیمت روز نمایش داده نشود.";
+  var ss = document.querySelector(".market .sec-sub");
+  if (ss) ss.textContent = "فقط فلزاتی که قیمت‌شان به‌طور خودکار به‌روز می‌شود. روی هر کارت کلیک کن تا نمودار روزانه/ماهانه/سالانه و قیمت‌های قبلی باز شود.";
+
   function findCard(sym){
     var all = Array.prototype.slice.call(document.querySelectorAll(".metal"));
     for (var i=0;i<all.length;i++){
@@ -44,19 +27,17 @@ window.addEventListener("load", function () {
     }
     return null;
   }
-  function setPrice(sym, price, badgeText, badgeClass, noteText){
+  function setPrice(sym, price, badgeText, badgeClass, noteHTML){
     var c = findCard(sym); if(!c) return;
     var p = c.querySelector(".metal-price");
     if(p) p.textContent = Number(price).toLocaleString("fa-IR",{maximumFractionDigits:2});
     var ch = c.querySelector(".chg");
     if(ch){ ch.className = "chg " + badgeClass; ch.textContent = badgeText; }
-    if(noteText){
-      var n = c.querySelector(".metal-note");
-      if(n) n.innerHTML = noteText;
-    }
+    var n = c.querySelector(".metal-note");
+    if(n && noteHTML) n.innerHTML = noteHTML;
   }
 
-  /* لایهٔ ۱: قیمت ساعتی که ایجنت سمت سرور ذخیره کرده */
+  /* لایهٔ ۱: قیمت ساعتیِ ذخیره‌شده توسط ایجنت */
   var hs = document.createElement("script");
   hs.src = "data/prices-live.js";
   hs.onload = function(){
@@ -66,10 +47,9 @@ window.addEventListener("load", function () {
         "🟡 به‌روزرسانی خودکار · " + lp[sym].ts + "<br><span style='opacity:.7'>منبع: " + lp[sym].src + "</span>");
     });
   };
-  hs.onerror = function(){ /* فایل هنوز ساخته نشده؛ لایهٔ بعدی تلاش می‌کند */ };
   document.head.appendChild(hs);
 
-  /* لایهٔ ۲: تلاش برای قیمت لحظه‌ای مستقیم در مرورگر */
+  /* لایهٔ ۲: تلاش برای قیمت لحظه‌ای مستقیم */
   var LIVE = {Au:"XAU", Ag:"XAG", Pt:"XPT", Pd:"XPD"};
   Object.keys(LIVE).forEach(function(sym){
     fetch("https://api.gold-api.com/price/" + LIVE[sym])
@@ -79,10 +59,10 @@ window.addEventListener("load", function () {
         setPrice(sym, j.price, "● زنده", "up",
           "🟢 لحظه‌ای (همین حالا از بازار)<br><span style='opacity:.7'>منبع: gold-api.com</span>");
       })
-      .catch(function(){ /* اگر نشد، همان قیمت ساعتی/مرجع می‌ماند و برچسبش صادق است */ });
+      .catch(function(){});
   });
 
-  /* ===== مودال نمودار (مثل قبل) ===== */
+  /* ===== مودال نمودار تاریخی ===== */
   var modal = document.getElementById("mmodal");
   if(!modal) return;
   var body = document.getElementById("mmBody");
@@ -138,8 +118,8 @@ window.addEventListener("load", function () {
     var hist = (window.MARKET_HISTORY||{})[meta.sym];
     if(!hist || !hist.t || !hist.t.length){
       body.innerHTML = '<div style="text-align:center;padding:40px 10px;color:var(--muted)">'+
-        '<p style="font-size:1rem;margin-bottom:8px">برای <b>'+meta.fa+'</b> دادهٔ تاریخی روزانهٔ رایگان در دسترس نیست.</p>'+
-        '<p style="font-size:.8rem">قیمت فعلی: <b class="lat">'+fa(meta.price)+'</b> '+meta.unit+'</p></div>';
+        '<p style="font-size:1rem;margin-bottom:8px">برای <b>'+meta.fa+'</b> هنوز دادهٔ تاریخی ذخیره نشده.</p>'+
+        '<p style="font-size:.8rem">قیمت فعلی: <b class="lat">'+fa(meta.price)+'</b> '+meta.unit+' — با هر اجرای ساعتی، تاریخچه بزرگ‌تر می‌شود.</p></div>';
       return;
     }
     drawChart(hist, meta.unit);
