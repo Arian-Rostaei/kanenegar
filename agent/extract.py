@@ -1,4 +1,4 @@
-"""خواندن و استخراج متن کامل مقاله از سایت منبع (بدون کتابخانهٔ خارجی)."""
+"""استخراج فقط بدنهٔ مقاله از سایت منبع؛ نظرات/مرتبط/تبلیغ حذف می‌شوند."""
 import base64
 import re
 import urllib.request
@@ -6,9 +6,20 @@ from html.parser import HTMLParser
 
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 
-SKIP = {"script", "style", "nav", "header", "footer", "aside", "form", "svg",
-        "noscript", "iframe", "button", "select", "figure"}
+SKIP_TAGS = {"script", "style", "nav", "header", "footer", "aside", "form", "svg",
+             "noscript", "iframe", "button", "select", "figure"}
 CAPTURE = {"p", "h1", "h2", "h3", "h4", "li", "blockquote", "figcaption", "pre"}
+BAD_ATTR = ("comment", "disqus", "respond", "related", "share", "social", "newsletter",
+            "subscribe", "advert", "promo", "recommend", "sidebar", "menu", "breadcrumb",
+            "author-bio", "tag-list", "footer", "nav", "outbrain", "taboola", "most-popular")
+
+CUT_MARKERS = [
+    "leave a reply", "leave a comment", "post a comment", "add a comment", "reader comments",
+    "comments (", "comments:", "subscribe to", "newsletter", "related articles", "related news",
+    "more from", "recommended for you", "you may also like", "advertisement", "share this article",
+    "about the author", "author bio", "tags:", "read more:", "نظرات", "دیدگاه‌ها", "پاسخ دهید",
+    "ارسال دیدگاه", "خبرهای مرتبط", "مطالب مرتبط", "اشتراک‌گذاری", "تبلیغات",
+]
 
 
 def fetch(url, timeout=25):
@@ -22,7 +33,6 @@ def fetch(url, timeout=25):
 
 
 def resolve_url(url):
-    """لینک‌های خبرگزاری گوگل را به لینک اصلی مقاله تبدیل می‌کند."""
     if "news.google.com" not in url:
         return url
     try:
@@ -49,26 +59,34 @@ class _TextExtractor(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.stack = []
-        self.skip = 0
+        self.block = []
         self.parts = []
 
+    def _bad_attrs(self, attrs):
+        for k, v in attrs:
+            if k in ("id", "class") and v:
+                low = v.lower()
+                if any(b in low for b in BAD_ATTR):
+                    return True
+        return False
+
     def handle_starttag(self, tag, attrs):
-        if tag in SKIP:
-            self.skip += 1
+        if tag in SKIP_TAGS or self._bad_attrs(attrs):
+            self.block.append(tag)
         self.stack.append(tag)
         if tag in ("br", "p", "li", "h1", "h2", "h3", "h4", "blockquote"):
             self.parts.append("\n")
 
     def handle_endtag(self, tag):
-        if tag in SKIP and self.skip > 0:
-            self.skip -= 1
+        if self.block and self.block[-1] == tag:
+            self.block.pop()
         if self.stack and self.stack[-1] == tag:
             self.stack.pop()
         if tag in ("p", "li", "h1", "h2", "h3", "h4", "blockquote"):
             self.parts.append("\n")
 
     def handle_data(self, data):
-        if self.skip == 0 and self.stack and self.stack[-1] in CAPTURE:
+        if not self.block and self.stack and self.stack[-1] in CAPTURE:
             self.parts.append(data)
 
     def text(self):
@@ -78,6 +96,16 @@ class _TextExtractor(HTMLParser):
         lines = [ln.strip() for ln in t.split("\n")]
         lines = [ln for ln in lines if len(ln) > 2]
         return "\n".join(lines)
+
+
+def _cut_comments(txt):
+    low = txt.lower()
+    cut = len(txt)
+    for mk in CUT_MARKERS:
+        i = low.find(mk.lower())
+        if i > 200:
+            cut = min(cut, i)
+    return txt[:cut].strip()
 
 
 def extract_text(url, limit=24000):
@@ -90,7 +118,7 @@ def extract_text(url, limit=24000):
         p.feed(page)
     except Exception:
         pass
-    txt = p.text()
+    txt = _cut_comments(p.text())
     if len(txt) < 200:
         return ""
     return txt[:limit]
