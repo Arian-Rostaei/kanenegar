@@ -1,7 +1,4 @@
-"""ترجمهٔ کامل و وفادارانه (بخش‌بخش ولی پیوسته) + سه هایلایت + واژه‌نامه.
-اولویت مدل: Qwen3-32B → Kimi-K2 → gpt-oss-120b → بقیه.
-با متغیر AGENT_LLM_MODEL می‌توانی مدل را اجباری انتخاب کنی.
-"""
+"""ترجمهٔ کامل و وفادارانهٔ بدنهٔ مقاله + سه هایلایت غیرتکراری + بخش چشم‌انداز و تحلیل."""
 import json
 import os
 import re
@@ -47,6 +44,7 @@ GLOSSARY = [
     ("Norilsk", "نوریلسک"), ("Grasberg", "گراسبرگ"), ("Simandou", "سیماندو"),
     ("Escondida", "اسکوندیدا"), ("Kamoa-Kakula", "کاموآ-کاکولا"),
     ("Thacker Pass", "تکر پس"), ("Oyu Tolgoi", "اویو تولگوی"),
+    ("EPA", "آژانس حفاظت محیط زیست آمریکا"),
 ]
 
 FIXES = [
@@ -60,27 +58,26 @@ _FAITHFUL = (
     "سال و تاریخ دقیقاً همان مقدار متن اصلی باشد (2026 همان 2026 بماند؛ فقط رقم فارسی شود). "
     "چیزی از خودت نساز. نقل‌قول را با گویندهٔ اصلی بیاور. "
     "اسم خاص فقط از واژه‌نامه؛ خارج از واژه‌نامه عیناً لاتین بماند. "
+    "فقط بدنهٔ مقاله را ترجمه کن؛ نظرات کاربران/بخش کامنت‌ها/خبرهای مرتبط/تبلیغ را ترجمه نکن. "
 )
 _WA = "; ".join(en + "=" + fa for en, fa in GLOSSARY)
 
 PROMPT_FIRST = (
-    "تو مترجم تخصصی معدن/فلزات/ژئوپلیتیک هستی. این نخستین بخش از یک مقاله است که قرار است کامل ترجمه شود. " + _FAITHFUL +
+    "تو مترجم تخصصی معدن/فلزات/ژئوپلیتیک هستی. این نخستین بخش از بدنهٔ یک مقاله است که قرار است کامل ترجمه شود. " + _FAITHFUL +
     "واژه‌نامه: " + _WA + "\n"
     "این بخش را بند‌به‌بند، کامل و پیوسته ترجمه کن (خلاصه نکن، پاراگرافی جا نینداز). "
     "فقط یک JSON معتبر برگردان با کلیدهای: title, lede, category, highlights, body. "
     "category از: " + "|".join(CATS) + ". "
-    "highlights: دقیقاً سه رشتهٔ کوتاه و مستقل که مهم‌ترین نکات کل خبر باشند (هر کدام یک جمله). "
-    "body: آرایه‌ای از رشته‌ها؛ ترجمهٔ کامل و پیوستهٔ همین بخش به‌ترتیب پاراگراف‌های اصلی. "
-    "برای سرفصل فرعی فقط اگر خود متن سرفصل دارد از «زیرتیتر|» استفاده کن؛ برای نقل‌قول «نقل|متن||گوینده». "
-    "هیچ سرفصل یا مقدمهٔ اضافه نساز."
+    "highlights: دقیقاً سه جملهٔ کوتاه و **متفاوت از هم** (تکراری نباشد و تکرار تیتر هم نباشد) که سه نکتهٔ کلیدی متمایز خبر باشند. "
+    "body: آرایه‌ای از رشته‌ها (حتماً آرایه، نه یک رشتهٔ واحد)؛ ترجمهٔ کامل و پیوستهٔ همین بخش به‌ترتیب پاراگراف‌های اصلی. "
+    "سرفصل فرعی فقط اگر خود متن سرفصل دارد با «زیرتیتر|»؛ نقل‌قول با «نقل|متن||گوینده». هیچ مقدمه/سرفصل اضافه نساز."
 )
 
 PROMPT_PART = (
-    "تو مترجم تخصصی معدن/فلزات هستی. این ادامهٔ همان مقاله است که در حال ترجمهٔ کامل آن هستیم. " + _FAITHFUL +
+    "تو مترجم تخصصی معدن/فلزات هستی. این ادامهٔ بدنهٔ همان مقاله است که در حال ترجمهٔ کامل آن هستیم. " + _FAITHFUL +
     "واژه‌نامه: " + _WA + "\n"
-    "فقط همین بخش را بند‌به‌بند، کامل و پیوسته ترجمه کن؛ نه خلاصه، نه حذف، نه اضافه. "
-    "این ادامه است: تیتر/مقدمه/هایلایت ننویس. "
-    "فقط یک JSON معتبر با یک کلید body (آرایهٔ رشته‌ها) برگردان که ترجمهٔ کامل همین بخش به‌ترتیب باشد. "
+    "فقط همین بخش را بند‌به‌بند، کامل و پیوسته ترجمه کن؛ نه خلاصه، نه حذف، نه اضافه. ادامه است: تیتر/مقدمه/هایلایت ننویس. "
+    "فقط یک JSON معتبر با یک کلید body برگردان که **آرایه‌ای از رشته‌ها** باشد (نه یک رشتهٔ واحد) و ترجمهٔ کامل همین بخش به‌ترتیب باشد. "
     "سرفصل فرعی فقط با «زیرتیتر|» اگر خود متن سرفصل دارد؛ نقل‌قول با «نقل|متن||گوینده»."
 )
 
@@ -89,10 +86,17 @@ PROMPT_SHORT = (
     "واژه‌نامه: " + _WA + "\n"
     "فقط همان را وفادارانه ترجمه کن و چیزی اضافه نکن. "
     "فقط JSON با کلیدهای title, lede, category, highlights, body. "
-    "category از: " + "|".join(CATS) + ". highlights دقیقاً سه جملهٔ کلیدی از همین خلاصه. body کوتاه و فقط بر پایهٔ همین خلاصه."
+    "category از: " + "|".join(CATS) + ". highlights سه جملهٔ کلیدی متفاوت. body آرایه‌ای از رشته‌ها و فقط بر پایهٔ همین خلاصه."
 )
 
-# اولویت: Qwen3 قوی‌ترین چندزبانهٔ رایگان روی Groq است.
+PROMPT_ANALYSIS = (
+    "تو تحلیل‌گر بازار فلزات هستی. متن ترجمه‌شدهٔ یک خبر در ادامه آمده است. "
+    "فقط و فقط بر پایهٔ همین متن (نه دانش بیرونی، نه حدس)، یک پاراگراف تحلیلی منسجم به فارسی بنویس با عنوان «چشم‌انداز و تحلیل»: "
+    "اثر این رویداد بر قیمت/عرضه/تقاضای فلز مربوطه و پیامد صنعتی یا سیاسی آن. "
+    "اگر متن اطلاعات کافی برای تحلیل ندارد، صادقانه بگو اطلاعات محدود است و فقط پیامد قطعیِ ذکرشده را بنویس. "
+    "فقط یک JSON معتبر با یک کلید analysis (یک رشته) برگردان."
+)
+
 PREFER = ["qwen3-32b", "kimi-k2", "gpt-oss-120b", "llama-4-maverick",
           "llama-4-scout", "llama-3.3-70b", "llama-3.1-8b"]
 
@@ -147,7 +151,7 @@ def _ordered(live):
 
 
 def _extract_json(text):
-    text = text.strip()
+    text = (text or "").strip()
     m = re.search(r"```(?:json)?\s*(.*?)```", text, re.S)
     if m:
         text = m.group(1).strip()
@@ -219,6 +223,32 @@ def _split(text, size=6000):
     return chunks or [text]
 
 
+def _body_to_list(body):
+    """هر شکل خروجی مدل (رشته/آرایه/دیکشنری) را به آرایه‌ای از رشته‌ها تبدیل می‌کند."""
+    if body is None:
+        return []
+    if isinstance(body, str):
+        return [p.strip() for p in re.split(r"\n+", body) if p.strip()]
+    out = []
+    if isinstance(body, dict):
+        body = [body]
+    for item in body:
+        if isinstance(item, str):
+            if item.strip():
+                out.append(item.strip())
+        elif isinstance(item, dict):
+            t = item.get("t") or item.get("type") or "p"
+            x = item.get("x") or item.get("text") or ""
+            if t in ("h", "h3", "heading"):
+                out.append("زیرتیتر|" + str(x))
+            elif t in ("q", "quote"):
+                by = item.get("by") or ""
+                out.append("نقل|" + str(x) + ("||" + str(by) if by else ""))
+            else:
+                out.append(str(x))
+    return out
+
+
 def normalize_text(s):
     if not isinstance(s, str):
         return s
@@ -239,17 +269,28 @@ def normalize_article(a):
     b["highlights"] = [normalize_text(h) for h in (a.get("highlights") or [])]
     b["facts"] = [[normalize_text(f[0]), normalize_text(f[1])]
                   for f in (a.get("facts") or []) if isinstance(f, (list, tuple)) and len(f) == 2]
-    nb = []
-    for p in (a.get("body") or []):
-        if isinstance(p, dict):
-            q = dict(p); q["x"] = normalize_text(p.get("x", ""))
-            if p.get("by"):
-                q["by"] = normalize_text(p["by"])
-            nb.append(q)
-        else:
-            nb.append(p)
-    b["body"] = nb
+    b["body"] = [normalize_text(p) for p in _body_to_list(a.get("body"))]
     return b
+
+
+def _distinct_highlights(hl, body):
+    seen, out = set(), []
+    for h in hl:
+        h = (h or "").strip()
+        key = re.sub(r"\s+", " ", h)
+        if h and key not in seen:
+            seen.add(key); out.append(h)
+    if len(out) < 3:
+        for p in body:
+            if p.startswith("زیرتیتر|") or p.startswith("نقل|"):
+                continue
+            first = re.split(r"(?<=[.!?])\s+", p)[0].strip()
+            key = re.sub(r"\s+", " ", first)
+            if len(first) > 25 and key not in seen:
+                seen.add(key); out.append(first)
+            if len(out) >= 3:
+                break
+    return out[:3]
 
 
 def translate_article(title, text, source_name, url, full=False):
@@ -259,11 +300,9 @@ def translate_article(title, text, source_name, url, full=False):
     text = text or ""
     if not full or len(text) < 400:
         raw = _call(PROMPT_SHORT, "منبع: " + source_name + "\nعنوان: " + title + "\nخلاصه:\n" + text)
-        obj = _extract_json(raw or "")
+        obj = _extract_json(raw)
         if not obj:
             return None
-        obj.setdefault("body", [])
-        obj.setdefault("highlights", [])
     else:
         chunks = _split(text, 6000)
         obj = None
@@ -272,23 +311,32 @@ def translate_article(title, text, source_name, url, full=False):
             system = PROMPT_FIRST if i == 0 else PROMPT_PART
             user = ("منبع: " + source_name + "\nعنوان اصلی: " + title +
                     "\n\n=== بخش " + str(i + 1) + " از " + str(len(chunks)) + " ===\n" + ch + "\n=== پایان بخش ===\n")
-            raw = _call(system, user)
-            o = _extract_json(raw or "")
+            o = _extract_json(_call(system, user))
             if not o:
-                print(f"  [llm] بخش {i+1} ناموفق؛ ادامه با بخش‌های دیگر.")
+                print(f"  [llm] بخش {i+1} ناموفق؛ ادامه.")
                 continue
             if i == 0:
                 obj = o
-            bodies += (o.get("body") or [])
+            bodies += _body_to_list(o.get("body"))
         if obj is None:
             return None
         obj["body"] = bodies
+
+    body = _body_to_list(obj.get("body"))
+    # بخش پایانیِ چشم‌انداز و تحلیل، فقط بر پایهٔ خود متن
+    joined = "\n".join(p for p in body if not p.startswith("زیرتیتر|"))[:9000]
+    ao = _extract_json(_call(PROMPT_ANALYSIS, "=== متن ترجمه‌شده ===\n" + joined + "\n=== پایان ===\n"))
+    if ao and ao.get("analysis"):
+        body.append("زیرتیتر|چشم‌انداز و تحلیل")
+        body.append(str(ao["analysis"]).strip())
+
     if obj.get("category") not in CATS:
         obj["category"] = "market"
-    hl = (obj.get("highlights") or [])[:3]
+    hl = _distinct_highlights(obj.get("highlights") or [], body)
+    obj["highlights"] = hl
     obj["facts"] = [[h, ""] for h in hl]
     obj["title"] = normalize_text(obj.get("title", ""))
     obj["lede"] = normalize_text(obj.get("lede", ""))
     obj["tags"] = [normalize_text(t) for t in (obj.get("tags") or [])]
-    obj["body"] = [normalize_text(p) if isinstance(p, str) else p for p in (obj.get("body") or [])]
+    obj["body"] = [normalize_text(p) for p in body]
     return obj
