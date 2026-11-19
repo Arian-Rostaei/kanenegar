@@ -1,4 +1,20 @@
-/* صفحه‌بندی سبک: ۱۵ خبر اول + دکمهٔ قدیمی‌تر | ۳ منبع اول + دکمهٔ بقیه */
+/* اصلاح نمایش اعداد: توکن‌های ترکیبی مثل 3Q26 لاتین می‌مانند؛ اعداد خالص فارسی می‌شوند. */
+window.faNum = function (v) {
+  var s = String(v), out = "";
+  for (var i = 0; i < s.length; i++) {
+    var ch = s[i];
+    if (ch >= "0" && ch <= "9") {
+      var a = i, b = i;
+      while (a > 0 && /[A-Za-z0-9]/.test(s[a - 1])) a--;
+      while (b < s.length - 1 && /[A-Za-z0-9]/.test(s[b + 1])) b++;
+      var token = s.slice(a, b + 1);
+      out += /[A-Za-z]/.test(token) ? ch : "۰۱۲۳۴۵۶۷۸۹"[+ch];
+    } else out += ch;
+  }
+  return out;
+};
+
+/* صفحه‌بندی: ۱۵ خبر اول + دکمهٔ قدیمی‌تر | ۳ منبع اول + دکمهٔ بقیه */
 (function(){
   var FEED_STEP = 15;
   var SRC_LIMIT = 3;
