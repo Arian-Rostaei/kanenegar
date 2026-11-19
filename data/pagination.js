@@ -1,4 +1,20 @@
-/* اصلاح نمایش اعداد: توکن‌های ترکیبی مثل 3Q26 لاتین می‌مانند؛ اعداد خالص فارسی می‌شوند. */
+/* ۱) پاک‌سازی نمایشی: خبرهایی که تیترشان فارسی نیست یا بدنهٔ خالی دارند حذف می‌شوند
+      (باقی‌ماندهٔ اجراهای قبل از خود-بازبینی). این کار قبل از رندر app.js انجام می‌شود. */
+(function(){
+  var A = window.ARTICLES_DATA;
+  if (Array.isArray(A)) {
+    for (var i = A.length - 1; i >= 0; i--) {
+      var a = A[i] || {};
+      var t = a.title || "";
+      var fa = (t.match(/[\u0600-\u06FF]/g) || []).length;
+      var la = (t.match(/[A-Za-z]/g) || []).length;
+      var bodyOk = Array.isArray(a.body) && a.body.length > 0;
+      if (fa === 0 || fa < la || !bodyOk) A.splice(i, 1);
+    }
+  }
+})();
+
+/* ۲) نمایش درست اعداد: توکن‌های ترکیبی مثل 3Q26 لاتین می‌مانند؛ اعداد خالص فارسی می‌شوند. */
 window.faNum = function (v) {
   var s = String(v), out = "";
   for (var i = 0; i < s.length; i++) {
@@ -8,13 +24,13 @@ window.faNum = function (v) {
       while (a > 0 && /[A-Za-z0-9]/.test(s[a - 1])) a--;
       while (b < s.length - 1 && /[A-Za-z0-9]/.test(s[b + 1])) b++;
       var token = s.slice(a, b + 1);
-      out += /[A-Za-z]/.test(token) ? ch : "۰۱۲۳۴۵۶۷۸۹"[+ch];
+      out += /[A-Za-z]/.test(token) ? ch : "۰۱۲۴۵۶۷۸۹"[+ch];
     } else out += ch;
   }
   return out;
 };
 
-/* صفحه‌بندی: ۱۵ خبر اول + دکمهٔ قدیمی‌تر | ۳ منبع اول + دکمهٔ بقیه */
+/* ۳) صفحه‌بندی: ۱۵ خبر اول + دکمهٔ قدیمی‌تر | ۳ منبع اول + دکمهٔ بقیه */
 (function(){
   var FEED_STEP = 15;
   var SRC_LIMIT = 3;
