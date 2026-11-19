@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""ایجنت روزانه: خبر چندمنبعی (جهانی+آسیایی)، ترجمهٔ تحلیلی، ذخیرهٔ تاریخچهٔ قیمت.
-نکته: اگر منبع زندهٔ تاریخچه در دسترس نباشد، تاریخچهٔ خوبِ قبلی حفظ می‌شود.
-"""
+"""ایجنت روزانه: متن کامل مقاله را می‌خواند و وفادارانه ترجمه می‌کند."""
 import datetime as dt
 import hashlib
 import html
@@ -17,6 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 import feeds
 import llm
+import extract
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
@@ -107,6 +106,13 @@ def to_body(paras):
             continue
         if p.startswith("زیرتیتر|"):
             out.append({"t": "h", "x": p.split("زیرتیتر|", 1)[1].strip()})
+        elif p.startswith("نقل|"):
+            seg = p.split("نقل|", 1)[1]
+            if "||" in seg:
+                q, by = seg.split("||", 1)
+                out.append({"t": "q", "x": q.strip(), "by": by.strip()})
+            else:
+                out.append({"t": "q", "x": seg.strip()})
         else:
             out.append({"t": "p", "x": p})
     return out
@@ -117,11 +123,11 @@ def slugify(title, url):
     return base + "-" + hashlib.md5(url.encode()).hexdigest()[:6]
 
 
-def build_article(item, fa):
+def build_article(item, fa, real_url):
     facts = fa.get("facts") or []
-    facts = [[str(f[0]), str(f[1])] for f in facts if isinstance(f, (list, tuple)) and len(f) == 2][:6]
+    facts = [[str(f[0]), str(f[1])] for f in facts if isinstance(f, (list, tuple)) and len(f) == 2][:8]
     return {
-        "id": slugify(item["title"], item["link"]),
+        "id": slugify(item["title"], real_url),
         "cat": fa.get("category", "market"),
         "date": dt.date.today().isoformat(),
         "title": clean_text(fa.get("title", "")) or item["title"],
@@ -130,7 +136,7 @@ def build_article(item, fa):
         "facts": facts,
         "body": to_body(fa.get("body") or []),
         "source": item["source"],
-        "src": {"name": item["source"], "url": item["link"], "orig": item["title"]},
+        "src": {"name": item["source"], "url": real_url, "orig": item["title"]},
     }
 
 
@@ -153,17 +159,15 @@ def fetch_history():
                 p.append(round(float(c), 2))
             if t:
                 hist[sym] = {"t": t, "p": p}
-                log(f"تاریخچه {sym}: {len(t)} روز")
         except Exception as e:
             log(f"تاریخچه {sym} دریافت نشد:", str(e)[:80])
-    # نگهبان: اگر هیچ منبع زنده‌ای جواب نداد، تاریخچهٔ خوب قبلی را حفظ کن
     if not hist and HISTORY_JS.exists():
         try:
             txt = HISTORY_JS.read_text(encoding="utf-8")
             m = re.search(r"window\.MARKET_HISTORY = (\{.*\});", txt, re.S)
             if m:
                 hist = json.loads(m.group(1))
-                log("تاریخچه از فایل موجود بازیابی شد (منبع زنده در دسترس نبود).")
+                log("تاریخچه از فایل موجود بازیابی شد.")
         except Exception:
             pass
     return hist
@@ -173,11 +177,11 @@ def write_outputs(articles, hist):
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     ARTICLES_JSON.write_text(json.dumps(articles, ensure_ascii=False, indent=1), encoding="utf-8")
     ARTICLES_JS.write_text(
-        "/* پایگاه دادهٔ مقالات — ایجنت روزانه بازنویسی می‌کند. */\n"
+        "/* پایگاه دادهٔ مقالات — ایجنت بازنویسی می‌کند. */\n"
         "window.ARTICLES_DATA = " + json.dumps(articles, ensure_ascii=False) + ";\n",
         encoding="utf-8")
     HISTORY_JS.write_text(
-        "/* تاریخچهٔ روزانه قیمت — ایجنت بازنویسی می‌کند. */\n"
+        "/* تاریخچهٔ روزانه قیمت. */\n"
         "window.MARKET_HISTORY = " + json.dumps(hist, ensure_ascii=False) + ";\n",
         encoding="utf-8")
     log(f"نوشتن {len(articles)} مقاله + تاریخچهٔ {len(hist)} فلز")
@@ -210,19 +214,21 @@ def main():
 
     new_articles = []
     for it in picked:
-        log(f"ترجمه ({it['source']}):", it["title"][:60])
-        try:
-            fa = llm.translate_article(it["title"], it["summary"], it["source"], it["link"])
-        except Exception as e:
-            log("خطای ترجمه:", str(e)[:150])
-            fa = None
+        real_url = extract.resolve_url(it["link"])
+        full = extract.extract_text(real_url)
+        if full and len(full) > 400:
+            log(f"متن کامل ({len(full)} نویسه) از {it['source']}: {it['title'][:50]}")
+            fa = llm.translate_article(it["title"], full, it["source"], real_url, full=True)
+        else:
+            log(f"متن کامل در دسترس نبود؛ فقط خلاصهٔ وفادارانه: {it['title'][:50]}")
+            fa = llm.translate_article(it["title"], it["summary"], it["source"], it["link"], full=False)
         if fa:
-            new_articles.append(build_article(it, fa))
+            new_articles.append(build_article(it, fa, real_url))
 
     hist = fetch_history()
 
     if not new_articles:
-        log("خبر تازه‌ای برای انتشار نبود؛ فقط تاریخچه به‌روز/حفظ شد.")
+        log("خبر تازه‌ای برای انتشار نبود.")
         write_outputs(existing, hist)
         return
 
