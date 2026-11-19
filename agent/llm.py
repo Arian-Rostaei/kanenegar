@@ -1,4 +1,7 @@
-"""ترجمهٔ کامل و وفادارانهٔ مقاله (بخش‌بخش ولی پیوسته) + سه هایلایت کلیدی در ابتدا."""
+"""ترجمهٔ کامل و وفادارانه (بخش‌بخش ولی پیوسته) + سه هایلایت + واژه‌نامه.
+اولویت مدل: Qwen3-32B → Kimi-K2 → gpt-oss-120b → بقیه.
+با متغیر AGENT_LLM_MODEL می‌توانی مدل را اجباری انتخاب کنی.
+"""
 import json
 import os
 import re
@@ -89,8 +92,9 @@ PROMPT_SHORT = (
     "category از: " + "|".join(CATS) + ". highlights دقیقاً سه جملهٔ کلیدی از همین خلاصه. body کوتاه و فقط بر پایهٔ همین خلاصه."
 )
 
-PREFER = ["gpt-oss-120b", "llama-3.3-70b", "llama-4-maverick", "llama-4-scout",
-          "qwen3-32b", "kimi-k2", "llama-3.1-8b"]
+# اولویت: Qwen3 قوی‌ترین چندزبانهٔ رایگان روی Groq است.
+PREFER = ["qwen3-32b", "kimi-k2", "gpt-oss-120b", "llama-4-maverick",
+          "llama-4-scout", "llama-3.3-70b", "llama-3.1-8b"]
 
 
 def _with_ua(h):
@@ -115,16 +119,23 @@ def _live_models(base, key):
         data = _http_get_json(base + "/models", {"Authorization": "Bearer " + key})
         ids = sorted({d.get("id", "") for d in data.get("data", []) if d.get("id")})
         if ids:
+            print("  [llm] مدل‌های زنده:", ", ".join(ids))
             return ids
     except Exception as e:
         print("  [llm] فهرست مدل‌ها نشد:", str(e)[:100])
-    return ["openai/gpt-oss-120b", "openai/gpt-oss-20b",
+    return ["qwen/qwen3-32b", "moonshotai/kimi-k2-instruct", "openai/gpt-oss-120b",
             "meta-llama/llama-4-maverick-17b-128e-instruct",
             "llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
 
 
 def _ordered(live):
     chosen = []
+    forced = os.environ.get("AGENT_LLM_MODEL", "").strip()
+    if forced and forced.lower() != "auto":
+        for m in forced.split(","):
+            m = m.strip()
+            if m and m not in chosen:
+                chosen.append(m)
     for kw in PREFER:
         for m in live:
             if kw in m and m not in chosen:
@@ -188,6 +199,7 @@ def _call(system, user):
                 "model": model, "temperature": 0.1, "max_tokens": 8000,
                 "messages": [{"role": "system", "content": system},
                              {"role": "user", "content": user}]})
+            print("  [llm] ✅ مدل استفاده‌شده:", model)
             return resp["choices"][0]["message"]["content"]
         except Exception as e:
             print("  [llm] مدل", model, "رد شد:", str(e)[:80])
@@ -273,7 +285,6 @@ def translate_article(title, text, source_name, url, full=False):
         obj["body"] = bodies
     if obj.get("category") not in CATS:
         obj["category"] = "market"
-    # سه هایلایت در قالب facts تا در بالای صفحهٔ خبر نمایش داده شوند
     hl = (obj.get("highlights") or [])[:3]
     obj["facts"] = [[h, ""] for h in hl]
     obj["title"] = normalize_text(obj.get("title", ""))
