@@ -1,4 +1,4 @@
-"""ترجمهٔ وفادارانه و کاملِ متن مقاله + واژه‌نامهٔ اجباری اسم‌های خاص."""
+"""ترجمهٔ کامل و وفادارانهٔ مقاله (بخش‌بخش ولی پیوسته) + سه هایلایت کلیدی در ابتدا."""
 import json
 import os
 import re
@@ -49,40 +49,44 @@ GLOSSARY = [
 FIXES = [
     ("عکدک", "اکوادور"), ("عکوادور", "اکوادور"), ("اکوادر", "اکوادور"),
     ("آرمانستان", "ارمنستان"), ("آرمنستان", "ارمنستان"), ("ارمنیستان", "ارمنستان"),
-    ("چیلی", "شیلی"), ("فریپورت", "فری‌پورت"), ("ریوتینتو", "ریو تینتو"),
-    ("نیومنت", "نیومانت"),
+    ("چیلی", "شیلی"), ("فریپورت", "فری‌پورت"), ("ریوتینتو", "ریو تینتو"), ("نیومنت", "نیومانت"),
 ]
 
 _FAITHFUL = (
-    "قوانین وفاداری (بسیار مهم): "
-    "۱) هیچ واقعیت، عدد، درصد، تاریخ یا نامی را تغییر نده، حذف نکن یا اضافه نکن. "
-    "۲) سال‌ها و تاریخ‌ها دقیقاً همان مقدار متن اصلی باشند (مثلاً اگر متن 2026 گفته، خروجی هم 2026 باشد؛ فقط رقم‌ها فارسی شوند). "
-    "۳) چیزی از خودت نساز؛ اگر چیزی در متن نیست، ننویس. "
-    "۴) نقل‌قول‌ها را با ذکر گویندهٔ اصلی ترجمه کن. "
-    "۵) اسم‌های خاص فقط از واژه‌نامه؛ هر اسم خارج از واژه‌نامه عیناً لاتین بماند. "
+    "قوانین وفاداری: هیچ واقعیت/عدد/درصد/تاریخ/نامی را تغییر نده، حذف نکن یا اضافه نکن. "
+    "سال و تاریخ دقیقاً همان مقدار متن اصلی باشد (2026 همان 2026 بماند؛ فقط رقم فارسی شود). "
+    "چیزی از خودت نساز. نقل‌قول را با گویندهٔ اصلی بیاور. "
+    "اسم خاص فقط از واژه‌نامه؛ خارج از واژه‌نامه عیناً لاتین بماند. "
 )
-
 _WA = "; ".join(en + "=" + fa for en, fa in GLOSSARY)
 
-PROMPT_FULL = (
-    "تو مترجم تخصصی معدن/فلزات/ژئوپلیتیک هستی. متن کامل یک مقاله در ادامه آمده است. "
-    "آن را بند‌به‌بند و وفادارانه به فارسی روان ترجمه کن. " + _FAITHFUL +
+PROMPT_FIRST = (
+    "تو مترجم تخصصی معدن/فلزات/ژئوپلیتیک هستی. این نخستین بخش از یک مقاله است که قرار است کامل ترجمه شود. " + _FAITHFUL +
     "واژه‌نامه: " + _WA + "\n"
-    "پوشش کامل: همهٔ بخش‌ها و پاراگراف‌های متن اصلی را ترجمه کن؛ طول ترجمه باید با طول متن اصلی متناسب باشد "
-    "(متن بلند = ترجمهٔ بلند، نه خلاصه). برای سرفصل‌های فرعی از پیشوند «زیرتیتر|» و برای نقل‌قول از «نقل|متن||گوینده» استفاده کن. "
-    "فقط یک JSON معتبر برگردان با کلیدهای: title, lede, category, tags, facts, body. "
+    "این بخش را بند‌به‌بند، کامل و پیوسته ترجمه کن (خلاصه نکن، پاراگرافی جا نینداز). "
+    "فقط یک JSON معتبر برگردان با کلیدهای: title, lede, category, highlights, body. "
     "category از: " + "|".join(CATS) + ". "
-    "facts شامل اعداد/تاریخ‌های کلیدیِ خود متن (دست‌کم ۴ مورد). "
-    "body آرایه‌ای از رشته‌هاست که کل مقاله را به‌ترتیب پوشش می‌دهد. "
-    "تنها افزودهٔ مجاز: یک پاراگراف پایانی با «زیرتیتر|تحلیل قیمت و چشم‌انداز» که صرفاً بر پایهٔ خود متن تحلیل کند."
+    "highlights: دقیقاً سه رشتهٔ کوتاه و مستقل که مهم‌ترین نکات کل خبر باشند (هر کدام یک جمله). "
+    "body: آرایه‌ای از رشته‌ها؛ ترجمهٔ کامل و پیوستهٔ همین بخش به‌ترتیب پاراگراف‌های اصلی. "
+    "برای سرفصل فرعی فقط اگر خود متن سرفصل دارد از «زیرتیتر|» استفاده کن؛ برای نقل‌قول «نقل|متن||گوینده». "
+    "هیچ سرفصل یا مقدمهٔ اضافه نساز."
+)
+
+PROMPT_PART = (
+    "تو مترجم تخصصی معدن/فلزات هستی. این ادامهٔ همان مقاله است که در حال ترجمهٔ کامل آن هستیم. " + _FAITHFUL +
+    "واژه‌نامه: " + _WA + "\n"
+    "فقط همین بخش را بند‌به‌بند، کامل و پیوسته ترجمه کن؛ نه خلاصه، نه حذف، نه اضافه. "
+    "این ادامه است: تیتر/مقدمه/هایلایت ننویس. "
+    "فقط یک JSON معتبر با یک کلید body (آرایهٔ رشته‌ها) برگردان که ترجمهٔ کامل همین بخش به‌ترتیب باشد. "
+    "سرفصل فرعی فقط با «زیرتیتر|» اگر خود متن سرفصل دارد؛ نقل‌قول با «نقل|متن||گوینده»."
 )
 
 PROMPT_SHORT = (
-    "تو مترجم تخصصی معدن/فلزات هستی. فقط یک خلاصهٔ کوتاه در ادامه آمده است. "
-    "فقط همان را وفادارانه به فارسی ترجمه کن و هیچ چیزی اضافه نکن (متن کامل در دسترس نیست). " + _FAITHFUL +
+    "تو مترجم تخصصی معدن/فلزات هستی. فقط یک خلاصهٔ کوتاه در دسترس است (متن کامل نیست). " + _FAITHFUL +
     "واژه‌نامه: " + _WA + "\n"
-    "فقط یک JSON معتبر با کلیدهای: title, lede, category, tags, facts, body. "
-    "category از: " + "|".join(CATS) + ". body کوتاه و فقط بر پایهٔ همین خلاصه باشد."
+    "فقط همان را وفادارانه ترجمه کن و چیزی اضافه نکن. "
+    "فقط JSON با کلیدهای title, lede, category, highlights, body. "
+    "category از: " + "|".join(CATS) + ". highlights دقیقاً سه جملهٔ کلیدی از همین خلاصه. body کوتاه و فقط بر پایهٔ همین خلاصه."
 )
 
 PREFER = ["gpt-oss-120b", "llama-3.3-70b", "llama-4-maverick", "llama-4-scout",
@@ -149,6 +153,60 @@ def _extract_json(text):
     return None
 
 
+def _call(system, user):
+    provider = os.environ.get("AGENT_LLM_PROVIDER", "openai").lower()
+    key = os.environ.get("AGENT_LLM_API_KEY", "").strip()
+    if not key:
+        return None
+    if provider == "gemini":
+        model = os.environ.get("AGENT_LLM_MODEL", "gemini-1.5-flash")
+        api = ("https://generativelanguage.googleapis.com/v1beta/models/" + model +
+               ":generateContent?key=" + key)
+        try:
+            resp = _http_json(api, {"Content-Type": "application/json"}, {
+                "contents": [{"role": "user", "parts": [{"text": system + "\n\n" + user}]}],
+                "generationConfig": {"temperature": 0.1, "maxOutputTokens": 8000}})
+            return resp["candidates"][0]["content"]["parts"][0]["text"]
+        except Exception as e:
+            print("  [llm] gemini:", str(e)[:90]); return None
+    if provider == "anthropic":
+        model = os.environ.get("AGENT_LLM_MODEL", "claude-3-5-sonnet-latest")
+        try:
+            resp = _http_json("https://api.anthropic.com/v1/messages", {
+                "Content-Type": "application/json", "x-api-key": key,
+                "anthropic-version": "2023-06-01"}, {
+                "model": model, "max_tokens": 8000, "system": system,
+                "messages": [{"role": "user", "content": user}]})
+            return resp["content"][0]["text"]
+        except Exception as e:
+            print("  [llm] anthropic:", str(e)[:90]); return None
+    base = os.environ.get("AGENT_LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+    for model in _ordered(_live_models(base, key)):
+        try:
+            resp = _http_json(base + "/chat/completions", {
+                "Content-Type": "application/json", "Authorization": "Bearer " + key}, {
+                "model": model, "temperature": 0.1, "max_tokens": 8000,
+                "messages": [{"role": "system", "content": system},
+                             {"role": "user", "content": user}]})
+            return resp["choices"][0]["message"]["content"]
+        except Exception as e:
+            print("  [llm] مدل", model, "رد شد:", str(e)[:80])
+    return None
+
+
+def _split(text, size=6000):
+    paras = text.split("\n")
+    chunks, cur = [], ""
+    for p in paras:
+        if len(cur) + len(p) + 1 > size and cur:
+            chunks.append(cur); cur = p
+        else:
+            cur = cur + "\n" + p if cur else p
+    if cur:
+        chunks.append(cur)
+    return chunks or [text]
+
+
 def normalize_text(s):
     if not isinstance(s, str):
         return s
@@ -166,13 +224,13 @@ def normalize_article(a):
     b["title"] = normalize_text(a.get("title", ""))
     b["lede"] = normalize_text(a.get("lede", ""))
     b["tags"] = [normalize_text(t) for t in (a.get("tags") or [])]
+    b["highlights"] = [normalize_text(h) for h in (a.get("highlights") or [])]
     b["facts"] = [[normalize_text(f[0]), normalize_text(f[1])]
                   for f in (a.get("facts") or []) if isinstance(f, (list, tuple)) and len(f) == 2]
     nb = []
     for p in (a.get("body") or []):
         if isinstance(p, dict):
-            q = dict(p)
-            q["x"] = normalize_text(p.get("x", ""))
+            q = dict(p); q["x"] = normalize_text(p.get("x", ""))
             if p.get("by"):
                 q["by"] = normalize_text(p["by"])
             nb.append(q)
@@ -183,62 +241,43 @@ def normalize_article(a):
 
 
 def translate_article(title, text, source_name, url, full=False):
-    provider = os.environ.get("AGENT_LLM_PROVIDER", "openai").lower()
-    key = os.environ.get("AGENT_LLM_API_KEY", "").strip()
-    if not key:
+    if not os.environ.get("AGENT_LLM_API_KEY", "").strip():
         print("  [llm] کلید تنظیم نشده.")
         return None
-    system = PROMPT_FULL if full else PROMPT_SHORT
-    user = ("منبع: " + source_name + "\nپیوند: " + url + "\nعنوان اصلی: " + title +
-            "\n\n=== متن مقاله ===\n" + (text or "(خالی)") + "\n=== پایان متن ===\n")
-    raw = None
-    if provider == "gemini":
-        model = os.environ.get("AGENT_LLM_MODEL", "gemini-1.5-flash")
-        api = ("https://generativelanguage.googleapis.com/v1beta/models/" + model +
-               ":generateContent?key=" + key)
-        try:
-            resp = _http_json(api, {"Content-Type": "application/json"}, {
-                "contents": [{"role": "user", "parts": [{"text": system + "\n\n" + user}]}],
-                "generationConfig": {"temperature": 0.1, "maxOutputTokens": 8000}})
-            raw = resp["candidates"][0]["content"]["parts"][0]["text"]
-        except Exception as e:
-            print("  [llm] جمینای خطا:", str(e)[:100])
-    elif provider == "anthropic":
-        model = os.environ.get("AGENT_LLM_MODEL", "claude-3-5-sonnet-latest")
-        try:
-            resp = _http_json("https://api.anthropic.com/v1/messages", {
-                "Content-Type": "application/json", "x-api-key": key,
-                "anthropic-version": "2023-06-01"}, {
-                "model": model, "max_tokens": 8000, "system": system,
-                "messages": [{"role": "user", "content": user}]})
-            raw = resp["content"][0]["text"]
-        except Exception as e:
-            print("  [llm] آنتروپیک خطا:", str(e)[:100])
+    text = text or ""
+    if not full or len(text) < 400:
+        raw = _call(PROMPT_SHORT, "منبع: " + source_name + "\nعنوان: " + title + "\nخلاصه:\n" + text)
+        obj = _extract_json(raw or "")
+        if not obj:
+            return None
+        obj.setdefault("body", [])
+        obj.setdefault("highlights", [])
     else:
-        base = os.environ.get("AGENT_LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/")
-        for model in _ordered(_live_models(base, key)):
-            try:
-                resp = _http_json(base + "/chat/completions", {
-                    "Content-Type": "application/json", "Authorization": "Bearer " + key}, {
-                    "model": model, "temperature": 0.1, "max_tokens": 8000,
-                    "messages": [{"role": "system", "content": system},
-                                 {"role": "user", "content": user}]})
-                raw = resp["choices"][0]["message"]["content"]
-                print("  [llm] ✅ مدل سالم:", model)
-                break
-            except Exception as e:
-                print("  [llm] مدل", model, "رد شد:", str(e)[:90])
-    if not raw:
-        return None
-    obj = _extract_json(raw)
-    if not obj or "title" not in obj:
-        return None
+        chunks = _split(text, 6000)
+        obj = None
+        bodies = []
+        for i, ch in enumerate(chunks):
+            system = PROMPT_FIRST if i == 0 else PROMPT_PART
+            user = ("منبع: " + source_name + "\nعنوان اصلی: " + title +
+                    "\n\n=== بخش " + str(i + 1) + " از " + str(len(chunks)) + " ===\n" + ch + "\n=== پایان بخش ===\n")
+            raw = _call(system, user)
+            o = _extract_json(raw or "")
+            if not o:
+                print(f"  [llm] بخش {i+1} ناموفق؛ ادامه با بخش‌های دیگر.")
+                continue
+            if i == 0:
+                obj = o
+            bodies += (o.get("body") or [])
+        if obj is None:
+            return None
+        obj["body"] = bodies
     if obj.get("category") not in CATS:
         obj["category"] = "market"
+    # سه هایلایت در قالب facts تا در بالای صفحهٔ خبر نمایش داده شوند
+    hl = (obj.get("highlights") or [])[:3]
+    obj["facts"] = [[h, ""] for h in hl]
     obj["title"] = normalize_text(obj.get("title", ""))
     obj["lede"] = normalize_text(obj.get("lede", ""))
     obj["tags"] = [normalize_text(t) for t in (obj.get("tags") or [])]
-    obj["facts"] = [[normalize_text(f[0]), normalize_text(f[1])]
-                    for f in (obj.get("facts") or []) if isinstance(f, (list, tuple)) and len(f) == 2]
     obj["body"] = [normalize_text(p) if isinstance(p, str) else p for p in (obj.get("body") or [])]
     return obj
